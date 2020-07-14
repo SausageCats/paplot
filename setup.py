@@ -3,14 +3,14 @@
 $Id: setup.py 204 2017-08-02 08:23:55Z aokada $
 """
 
-from setuptools import setup, find_packages
+import os
+from setuptools import setup
 from scripts.paplot import __version__
 
 import sys
 sys.path.append('./paplot')
 sys.path.append('./tests/python')
 
-import os
 
 def package_files(directory):
     paths = []
@@ -19,12 +19,13 @@ def package_files(directory):
             paths.append(os.path.join(path, filename))
     return paths
 
-data_files=[
+data_files = [
     ('paplot-data-' + __version__ + "/config_template", package_files('config_template')),
     ('paplot-data-' + __version__ + "/genome", package_files('genome')),
 ]
 for path in package_files('example'):
-    if path.endswith(".zip"): continue
+    if path.endswith(".zip"):
+        continue
     data_files.append(('paplot-data-' + __version__ + "/" + os.path.dirname(path), [path]))
 
 setup(name='paplot',
@@ -52,15 +53,15 @@ Furthermore, by moving the mouse, the user can efficiently obtain various inform
           'Programming Language :: Python :: 3.3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
-      ], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-      
+      ],  # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+
       keywords='post analysis genome bioinfomatics',
       author='Ai Okada',
       author_email='genomon.devel@gmail.com',
       url='https://github.com/Genomon-Project/paplot.git',
       license='MIT',
-      
-      package_dir = {'': 'scripts'},
+
+      package_dir={'': 'scripts'},
       packages=['paplot', 'paplot.subcode'],
       scripts=['paplot'],
       data_files=data_files,
@@ -72,8 +73,8 @@ Furthermore, by moving the mouse, the user can efficiently obtain various inform
       entry_points="""
       # -*- Entry points: -*-
       """,
-      package_data = {
-          'paplot': ['lib/*/*','js/*','templates/*', 'style/*', 'layout/*'],
+      package_data={
+          'paplot': ['lib/*/*', 'js/*', 'templates/*', 'style/*', 'layout/*'],
       },
-      test_suite = 'unit_tests.suite',
-)
+      test_suite='unit_tests.suite',
+      )
