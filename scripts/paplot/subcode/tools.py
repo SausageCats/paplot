@@ -81,17 +81,17 @@ def dict_keys(di):
     return li
 
 def get_idlist(file_list, suffix):
-
+    """Get the basenames of input files"""
     import os
     ids = []
     for f in file_list:
         ids.append(os.path.basename(f).replace(suffix, ""))
-
     return ids
 
 def get_inputlist(pattern):
     import glob
 
+    # Multiple input files can be accepted
     inputs = pattern.lstrip("'").lstrip('"').rstrip("'").rstrip('"').split(",")
 
     all_list = []
@@ -104,6 +104,8 @@ def get_inputlist(pattern):
     return input_list
 
 def get_section(mode):
+    """Get section names in the config file"""
+    # The default config file is defined in ../templates/paplot.cfg
     section_in = ""
     section_out = ""
 
@@ -135,7 +137,7 @@ def load_config(config_file):
         import ConfigParser as cp
 
     if len(config_file) == 0:
-        config_file = os.path.dirname(os.path.abspath(__file__)) + "/../templates/paplot.cfg"
+        config_file = os.path.dirname(os.path.abspath(__file__)) + "/../templates/paplot.cfg"  # ../templates/paplot.cfg
         config_file = os.path.abspath(config_file)
 
     if os.path.exists(config_file) is False:

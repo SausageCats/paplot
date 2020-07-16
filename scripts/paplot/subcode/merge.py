@@ -10,13 +10,23 @@ $Id: merge.py 204 2017-08-02 08:23:55Z aokada $
 from . import tools
 
 def load_potisions(mode, config):
+    """Returns a nested dictionary with required and optional column entries"""
+    # The nested dictionary is like {"must": value_must, "option": value_option}
+    # value_must: dictionary
+    #   key  : A string without the leading col_ of the key name col_*** defined in a config file
+    #        : ex) col_chr1 => key=chr1
+    #   value: The value corresponding to the key name col_***
+    # value_option: dictionary
+    #   key  : A string without the leading col_opt_ of the key name col_opt_*** defined in a config file
+    #        : ex) col_opt_dir1 => key=dir1
+    #   value: The value corresponding to the key name col_opt_***
 
     [section_in, section_out] = tools.get_section(mode)
     header = tools.config_getboolean(config, section_in, "header")
 
     must = {}
     opts = {}
-    for option in config.options(section_in):
+    for option in config.options(section_in):  # Retrieve the keys defined in the section
         param = ""
         if option.startswith("col_"):
             param = option.replace("col_", "")
@@ -27,11 +37,13 @@ def load_potisions(mode, config):
                 continue
 
             if param.startswith("opt_"):
+                # column index (option) in ../templates/paplot.cfg
                 if header is True:
                     opts[param.replace("opt_", "")] = value
                 else:
                     opts[param.replace("opt_", "")] = config.getint(section_in, option)
             else:
+                # column index (required) in ../templates/paplot.cfg
                 if header is True:
                     must[param] = value
                 else:
@@ -108,6 +120,7 @@ def _merge_metadata(files, option):
     return meta_text
 
 def _merge_title(files, mode, option, config):
+    """Extract header titles from input file without duplicates"""
 
     if option["header"] is False:
         return []
@@ -117,19 +130,19 @@ def _merge_title(files, mode, option, config):
     for file_path in files:
         title = []
         for line in open(file_path):
-
             line = line.rstrip("\r\n")
+
             if len(line.replace(option["sept"], "")) == 0:
-                continue
+                continue  # Ignore blank line
 
             if len(option["comment"]) > 0 and line.find(option["comment"]) == 0:
-                continue
+                continue  # Ignore comment line
 
             title = line.split(option["sept"])
             break
 
         for col in title:
-            if (col in merged_title) is False:
+            if (col in merged_title) is False:  # Do not include duplicate titles
                 merged_title.append(col)
 
     return merged_title.sort()
@@ -172,15 +185,15 @@ def with_header(files, ids, output_file, mode, config, extract=False):
 
     meta_text = _merge_metadata(files, option)
 
-    positions = load_potisions(mode, config)
+    positions = load_potisions(mode, config)  # positions = {"must": {...}, "option": {...}} ... nested dictionary
 
+    # Define title list that is determined from a config file (not input files)
     if extract is False:
         titles = _merge_title(files, mode, option, config)
     else:
         titles = []
         for key in tools.dict_keys(positions["must"]):
             titles.append(positions["must"][key])
-
         for key in tools.dict_keys(positions["option"]):
             titles.append(positions["option"][key])
 
@@ -212,14 +225,16 @@ def with_header(files, ids, output_file, mode, config, extract=False):
                 continue
 
             if len(header) == 0:
+                # line is header line
                 header = line.split(option["sept"])
-                mapper = calc_map(header, titles)
+                mapper = calc_map(header, titles)  # header[mapper[i]] == titles[i] if mapper[i] != -1
                 continue
 
             data = line.split(option["sept"])
             sort_data = []
             for i in range(len(titles)):
                 if mapper[i] < 0:
+                    # Run here if a column candidate(titles[i]) is not in the header
                     if titles[i] == positions["option"]["id"]:
                         sort_data.append(ids[idx])
                     else:

@@ -67,6 +67,37 @@ def qc_main(args):
                       overview=args.overview, remarks=args.remarks)
 
 def ca_main(args):
+    '''
+    ca main script
+
+    Parameters
+    ----------
+    args: argparse.Namespace
+        : Args contains the arguments specified in the paplot command
+
+    Args parameters
+    ----------
+    input       : string  : Input file path
+    output_dir  : string  : Output directory path
+    project_name: string  : Project name path
+    config_file : string  : Config file path
+    title       : string  : Report title name
+    ellipsis    : string  : File name identifier for report
+    overview    : string  : Report summary
+    remarks     : string  : Additional information about report
+    func        : function: This function (ca_main)
+
+    Return
+    ----------
+    None
+    '''
+    # The default values of the variables are defined in the file: ../../paplot
+    # config_file: ""                       :
+    # title      : "CA graphs"              : This value is replaced by {title} in ./templates/graph_ca.html
+    # ellipsis   : "ca"                     : This value is used as part of file names, such as graph_ca.html
+    # overview   : "Chromosomal Aberration.": This value is used in _convert_index_item function in ./prep.py
+    # remarks    : ""                       : This value is replaced by {remarks} in ./templates/index.html
+
     import paplot.ca as ca
 
     # config
@@ -78,6 +109,8 @@ def ca_main(args):
         return
 
     [sec_in, sec_out] = tools.get_section("ca")
+    # id_list is used when the column candidates defined in the config file are not in the header of input files
+    # see ids veriable of with_header function in ./subcode/merge.py for details
     id_list = tools.get_idlist(input_list, tools.config_getstr(config, sec_in, "suffix"))
 
     # dirs
