@@ -8,11 +8,12 @@ $Id: prep.py 189 2017-01-25 06:47:57Z aokada $
 """
 
 def copy_dir_lib(dst):
+    """Copy ./lib directory to the destination directory"""
     import shutil
     import os
     import glob
 
-    pattern = os.path.dirname(os.path.abspath(__file__)) + "/lib/*/*"
+    pattern = os.path.dirname(os.path.abspath(__file__)) + "/lib/*/*"  # ./lib/*/*
     li_files = glob.glob(pattern)
 
     for f in li_files:
@@ -22,53 +23,67 @@ def copy_dir_lib(dst):
         shutil.copy(f, dst_dir)
 
 def copy_dir_js(dst):
+    """Copy ./js directory to the destination directory"""
     import shutil
     import os
     import glob
 
-    pattern = os.path.dirname(os.path.abspath(__file__)) + "/js/*"
+    pattern = os.path.dirname(os.path.abspath(__file__)) + "/js/*"  # ./js/*
     li_files = glob.glob(pattern)
 
     for f in li_files:
         shutil.copy(f, dst)
 
 def copy_dir_style(dst, config):
-
+    """Copy ./style directory to the destination directory"""
     import paplot.subcode.tools as tools
     import shutil
     import os
     import glob
 
-    pattern = os.path.dirname(os.path.abspath(__file__)) + "/style/*"
+    pattern = os.path.dirname(os.path.abspath(__file__)) + "/style/*"  # ./style/*
     li_files = glob.glob(pattern)
 
     for f in li_files:
         shutil.copy(f, dst)
 
     # for option file
-    option = tools.config_getpath(config, "style", "path")
+    option = tools.config_getpath(config, "style", "path")  # Additional style file
     if len(option) > 0:
         shutil.copy(option, dst)
 
 def copy_dir_layout(dst):
+    """Copy ./layout directory to the destination directory"""
     import shutil
     import os
     import glob
 
-    pattern = os.path.dirname(os.path.abspath(__file__)) + "/layout/*"
+    pattern = os.path.dirname(os.path.abspath(__file__)) + "/layout/*"  # ./layout/*
     li_files = glob.glob(pattern)
 
     for f in li_files:
         shutil.copy(f, dst)
 
 def create_dirs(args_output_dir, project_name, config):
+    """
+    Creates an output directory hierarchy
+    Returns the project directory path
+    """
+    # output directory
+    #   +--- project_name
+    #   +--- js
+    #   +--- lib
+    #   +--- style
+    #   +--- layout
     import os
 
     output_dir = os.path.abspath(args_output_dir)
     if (os.path.exists(output_dir) is False):
         os.makedirs(output_dir)
 
-    output_html_dir = output_dir + "/" + project_name
+    # Create subdirectories in the output directory
+
+    output_html_dir = output_dir + "/" + project_name  # project directory path
     if (os.path.exists(output_html_dir) is False):
         os.makedirs(output_html_dir)
 
@@ -88,8 +103,9 @@ def create_dirs(args_output_dir, project_name, config):
     if (os.path.exists(output_layout_dir) is False):
         os.makedirs(output_layout_dir)
 
-    copy_dir_lib(output_lib_dir)
+    # Copy to the subdirectories
     copy_dir_js(output_js_dir)
+    copy_dir_lib(output_lib_dir)
     copy_dir_style(output_style_dir, config)
     copy_dir_layout(output_layout_dir)
 

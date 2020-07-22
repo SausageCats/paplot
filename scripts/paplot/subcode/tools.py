@@ -24,6 +24,10 @@ def config_getint(config, section, item, default=-1):
     return value
 
 def config_getpath(config, section, item, default=""):
+    """
+    Returns the path set in the configuration file
+    If not set, returns the default value or empty string
+    """
 
     if config.has_option(section, item) is True:
         path = win_to_unix(config.get(section, item).strip())
@@ -128,6 +132,7 @@ def get_section(mode):
     return [section_in, section_out]
 
 def load_config(config_file):
+    """Parse a configuration file and return its parser object and its file"""
 
     import os
     import sys
@@ -171,6 +176,8 @@ def print_conf(config, conf_file, name):
             print(item)
 
 def win_to_unix(win_path):
+    """Convert window path to unix path"""
+
     if len(win_path) == 0:
         return ""
 

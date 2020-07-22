@@ -52,73 +52,97 @@ detail_template = """<div class="float_frame" id="float{id}"><table><tr><td clas
 # functions
 
 def load_genome_size(config):
+    """
+    Read and parse a genome-size file and return a nested list:
+    [ [ A chromosome number in lowercase letters,
+        The size of the 1st element,
+        The color of the 1st element,
+        The original name of the 1st element(that is not necessarily lowercase) or a user-defined name,
+      ],
+      ...
+    ]
+    """
     import os
     import paplot.subcode.tools as tools
 
-    default_path = os.path.dirname(os.path.abspath(__file__)) + "/templates/genome_size_hg19.csv"
+    default_path = os.path.dirname(os.path.abspath(__file__)) + "/templates/genome_size_hg19.csv"  # ./templates/genome_size_hg19.csv
     path = tools.config_getpath(config, "genome", "path", default_path)
 
+    # Create a list with Name:Label:Color for each element
+    # Name is like chromosome number such as 1, 2, ..., X, Y, ...
+    # :Label and :Color is optional
     settings = tools.config_getstr(config, "ca", "use_chrs").replace(" ", "").split(",")
-    use_chrs = []
-    colors = []
-    labels = []
 
+    use_chrs = []
+    labels = []
+    colors = []
     for i in range(len(settings)):
+        # items[0]: Name corresponding to chromosome number
+        # items[1]: Label
+        # items[2]: Color
         items = settings[i].split(":")
-        use_chrs.append(items[0].lower())
+        use_chrs.append(items[0].lower())  # Conversion of chromosome number to lowercase
         labels.append("")
-        colors.append("#BBBBBB")
+        colors.append("#BBBBBB")  # gray
 
         for j in range(len(items)):
             if j == 0:
                 if items[j][0:3] == "chr":
-                    use_chrs[i] = items[j][3:]
-
+                    use_chrs[i] = items[j][3:]  # Remove the leading "chr"
             elif j == 1:
                 labels[i] = items[j]
             elif j == 2:
                 colors[i] = items[j]
-
     if len(use_chrs) < 1:
         return []
 
+    # Read genome size
     f = open(path)
     read = f.read()
     f.close()
-
     formatt = read.replace("\r", "\n").replace(" ", "")
 
     genome_size = []
     _max = 0
     for row in formatt.split("\n"):
+        # Delimiter setting
         sept = ","
         if row.find(",") < 0:
             sept = "\t"
-        items = row.split(sept)
 
+        # Split the line and the second element must be numeric
+        # item[0]: chromosome number
+        # item[1]: size of item[0]
+        items = row.split(sept)
         if len(items) < 2:
             continue
-
         if items[1].isdigit() is False:
             continue
 
-        label = items[0].lower()
+        # The first element must be included in the list of chromosome numbers extracted from the configuration file
+        label = items[0].lower()  # Convert label to lowercase
         if label[0:3] == "chr":
-            label = label[3:len(label)]
-
+            label = label[3:len(label)]  # Remove the leading "chr"
         if (label in use_chrs) is False:
             continue
 
+        # Create a list that is an element of genome_size
+        # The list has the following elements
+        #   1st: A chromosome number in lowercase letters
+        #   2st: The size of the 1st element
+        #   3st: The color of the 1st element
+        #   4st: The original name of the 1st element(that is not necessarily lowercase) or a user-defined name
+        # genome_size is in the order read from the genome-size file instead of the configuration file
         pos = use_chrs.index(label)
+        if labels[pos] == "":
+            labels[pos] = items[0]
+        genome_size.append([label, int(items[1]), colors[pos], labels[pos]])
 
+        # Maximum size of the chromosome
         if _max < int(items[1]):
             _max = int(items[1])
 
-        if labels[pos] == "":
-            labels[pos] = items[0]
-
-        genome_size.append([label, int(items[1]), colors[pos], labels[pos]])
-
+    # The minimum size of the chromosomes is set to 1/10 of the maximum size
     for i in range(len(genome_size)):
         if genome_size[i][1] < int(_max / 10):
             genome_size[i][1] = int(_max / 10)
@@ -159,7 +183,35 @@ def insite_genome(genome_size, chrom, pos):
     return [-1, -1]
 
 def output_html(output_di, positions, config):
+    """
+    Parameters
+    ----------
+    output_di: dict
+             : Has the following keys and values
+               'dir'    : Project directory full path
+               'data'   : Data file name like csv
+               'js'     : JavaScript file name
+               'html'   : HTML file name
+               'project': Project name given by user on command line
+               'title'  : 'CA graphs' as default
+    positions: a nested dict
+             : For example, the following dictionary
+               'must'  : {'chr1': 'Chr1', 'break1': 'Break1', 'chr2': 'Chr2', 'break2': 'Break2'},
+               'option': {'id': 'Sample'}
+               The 'must' and 'option' values correspond to the column names in the data file (output_di['data'])
+    config: configparser.RawConfigParser
+
+    Return
+    ----------
+    True on success
+    """
     data = convert_tojs(output_di["dir"] + "/" + output_di["data"], output_di["dir"] + "/" + output_di["js"], positions, config)
+    # data is the following json form
+    # {
+    #   'id_list'   : ['SAMPLE1', 'SAMPLE2', ... ],
+    #   'group_list': ['outer'  , 'inner'],
+    #   'color'     : ['#9E4A98', '#51BF69']
+    # }
     if data is not None:
         create_html(data, output_di, config)
         return True
@@ -167,7 +219,20 @@ def output_html(output_di, positions, config):
     return False
 
 def convert_tojs(input_file, output_file, positions, config):
+    '''
+    Create Json format data
 
+    Parameters
+    ----------
+    input_file : str : The absolute path of formatted data file
+    output_file: str : The absolute path of JavaScript file
+    positions  : dict: A nested dictionary with 'must' and 'option' as keys
+    config     : configparser.RawConfigParser
+
+    Return
+    ----------
+    Json format data: {"id_list": [...] "group_list": [...], "color": [...]}
+    '''
     import paplot.subcode.data_frame as data_frame
     import paplot.subcode.merge as merge
     import paplot.subcode.tools as tools
@@ -175,25 +240,37 @@ def convert_tojs(input_file, output_file, positions, config):
     import os
     import math
 
+    # genome_size: a nested list
+    # [ [ A chromosome number in lowercase letters,
+    #     The size of the 1st element,
+    #     The color of the 1st element,
+    #     The original name of the 1st element(that is not necessarily lowercase) or a user-defined name, ], ... ]
     genome_size = load_genome_size(config)
 
     if len(genome_size) == 0:
         return None
 
+    # genome: dictionary-style string like this
+    # {"chr":"00", "size":249250621, "color":"#BBBBBB", "label":"1",},
+    # {"chr":"01", "size":243199373, "color":"#BBBBBB", "label":"2",},
+    # ...
+    # chr  : Sequential number
+    # size : Size corresponding to the label
+    # color: Color corresponding to the label
+    # label: Name corresponding to chromosome
     genome = ""
     for i in range(len(genome_size)):
         if len(genome) > 0:
             genome += ",\n"
         genome += genome_size_template.format(Chr=i, size=genome_size[i][1], color=genome_size[i][2], label=genome_size[i][3])
 
-    cols_di = merge.position_to_dict(positions)
-
     # data read
     try:
-        df = data_frame.load_file(input_file, header=1,
-                                  sept=tools.config_getstr(config, "result_format_ca", "sept"),
-                                  comment=tools.config_getstr(config, "result_format_ca", "comment")
-                                  )
+        df = data_frame.load_file(
+            input_file, header=1,
+            sept=tools.config_getstr(config, "result_format_ca", "sept"),
+            comment=tools.config_getstr(config, "result_format_ca", "comment")
+        )
     except Exception as e:
         print("failure open data %s, %s" % (input_file, e.message))
         return None
@@ -203,6 +280,7 @@ def convert_tojs(input_file, output_file, positions, config):
         return None
 
     # group list
+    cols_di = merge.position_to_dict(positions)
     if "group" in cols_di:
         for f in range(len(df.data)):
             group_pos = df.name_to_index(cols_di["group"])

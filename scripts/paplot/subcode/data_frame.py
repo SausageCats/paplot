@@ -121,30 +121,35 @@ class DataFrame:
         f.close()
 
 def _usecol(filepath, sept, header, skipfooter, comment):
-    # file read end
+    """Returns a range(0, the maximum number of columns)"""
+
+    # number of lines in file excluding the footer
     end = sum(1 for line in open(filepath)) - skipfooter
 
-    # create usecol
-    max_colnum = 0
+    # Count the maximum number of columns to create usecol
+
     header_counter = -1
-    footer_counter = -1
-
+    line_counter = -1
+    max_colnum = 0
     for line in open(filepath):
-        footer_counter += 1
-
+        line_counter += 1
         line = line.rstrip("\r\n")
+
+        # Ignore empty line
         if len(line) == 0:
             continue
+        # Ignore comment line
         if len(comment) > 0 and line.find(comment) == 0:
             continue
-
+        # Ignore header line
         header_counter += 1
         if header_counter < header:
             continue
-        if footer_counter >= end:
+        # Ignore footer line
+        if line_counter >= end:
             break
 
-        # count columns num
+        # Count columns
         cols = line.split(sept)
         if max_colnum < len(cols):
             max_colnum = len(cols)
@@ -154,12 +159,11 @@ def _usecol(filepath, sept, header, skipfooter, comment):
     return usecol
 
 def _f_usecol(usecol):
-
+    """Returns a list of positive elements"""
     cols = []
     for u in usecol:
         if u >= 0:
             cols.append(u)
-
     return cols
 
 def load_title(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="#"):
@@ -208,21 +212,24 @@ def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="
 
     df = DataFrame()
 
-    # filepath is exists
+    # Check file path
     import os
     if os.path.exists(filepath) is False:
-        print("File is not exist. %s" % filepath)
+        print("File does not exist. %s" % filepath)
         return df
 
-    # file read
+    # Number of lines in file excluding the footer
     end = sum(1 for line in open(filepath)) - skipfooter
 
+    # Delimiter
     sept = sept.replace("\\t", "\t").replace("\\n", "\n").replace("\\r", "\r")
 
-    # create usecol
+    # Create usecol
     if usecol is None:
+        # usecol: range class
         usecol = _usecol(filepath, sept, header, skipfooter, comment)
     else:
+        # usecol: list
         usecol = _f_usecol(usecol)
 
     # create title
@@ -231,10 +238,10 @@ def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="
     # load to data[row][col]
     tmp = []
     header_counter = -1
-    footer_counter = -1
+    line_counter = -1
 
     for line in open(filepath):
-        footer_counter += 1
+        line_counter += 1
 
         line = line.rstrip("\r\n")
         if len(line) == 0:
@@ -245,7 +252,7 @@ def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="
         header_counter += 1
         if header_counter < header:
             continue
-        if footer_counter >= end:
+        if line_counter >= end:
             break
 
         cols = line.split(sept)

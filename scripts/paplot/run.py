@@ -103,6 +103,7 @@ def ca_main(args):
     # config
     [config, conf_file] = tools.load_config(tools.win_to_unix(args.config_file))
 
+    # input_list: a list with input data files as elements
     input_list = tools.get_inputlist(tools.win_to_unix(args.input))
     if len(input_list) == 0:
         print("input no file.")
@@ -113,7 +114,12 @@ def ca_main(args):
     # see ids veriable of with_header function in ./subcode/merge.py for details
     id_list = tools.get_idlist(input_list, tools.config_getstr(config, sec_in, "suffix"))
 
-    # dirs
+    # output_html_dir: The absolute path of the project directory
+    # output_data    : File name like data_ca.csv
+    #                : This file is created by the merge.merge_result function and placed in the project directory
+    #                : The contents of the file are formatted from the input file to match the configuration file
+    #                : After that, read the contents and convert it to Json format in ca.output_html function
+    # positions      : A nested dictionary: {'must'  : {key1: title1, ...}, 'option': {key2: title2, ...}}
     output_html_dir = prep.create_dirs(tools.win_to_unix(args.output_dir), args.project_name, config)
     output_data = "data_%s%s" % (args.ellipsis, os.path.splitext(input_list[0])[1])
     positions = merge.merge_result(input_list, id_list, output_html_dir + "/" + output_data, "ca", config, extract=True)
@@ -122,12 +128,12 @@ def ca_main(args):
         return
 
     html_name = "graph_%s.html" % args.ellipsis
-    params_html = {"dir": output_html_dir,
-                   "data": output_data,
-                   "js": "data_%s.js" % args.ellipsis,
-                   "html": html_name,
-                   "project": args.project_name,
-                   "title": args.title,
+    params_html = {"dir": output_html_dir,              # Project directory full path
+                   "data": output_data,                 # Data file name like csv
+                   "js": "data_%s.js" % args.ellipsis,  # JavaScript file name
+                   "html": html_name,                   # HTML file name
+                   "project": args.project_name,        # Project name given by user on command line
+                   "title": args.title,                 # 'CA graphs' as default
                    }
     ca.output_html(params_html, positions, config)
 
