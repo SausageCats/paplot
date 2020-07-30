@@ -23,6 +23,7 @@ def pickup_color(color_list, index):
     return color_list[pos]
 
 def create_color_dict(keys, partial_dict, color_list):
+    """Return a color dictionary"""
     di = {}
     counter = 0
     for key in keys:
@@ -33,7 +34,6 @@ def create_color_dict(keys, partial_dict, color_list):
             counter += 1
             if counter >= len(color_list):
                 counter = 0
-
     return di
 
 def create_color_array(length, color_list):
@@ -48,9 +48,9 @@ def create_color_array(length, color_list):
     return li
 
 def name_to_value(name):
+    """Return a standardized color name"""
     if name.lower() in name_value:
         return name_value[name.lower()]
-
     return name
 
 def saturation_down_list(color_list):

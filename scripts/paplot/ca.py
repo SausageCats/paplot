@@ -7,34 +7,65 @@ Created on Wed Feb 03 12:31:47 2016
 $Id: ca.py 205 2017-08-08 06:25:59Z aokada $
 """
 
+#
 # js template
+#
+
 js_header = """(function() {
 ca_data = {};
 """
+
 js_footer = """
 })();
 Object.freeze(ca_data);
 """
 
 js_dataset = """
-ca_data.node_size_detail = {node_size_detail};
-ca_data.node_size_thumb = {node_size_thumb};
-ca_data.node_size_select = {node_size_select};
+ca_data.node_size_detail = {node_size_detail}; // for detailed thumbnails
+ca_data.node_size_thumb = {node_size_thumb}; // for thumbnails
+ca_data.node_size_select = {node_size_select}; // for bar graph
+
+// Genome content
+// chr  : Sequential number
+// size : Chromosome length
+// color: RGB color
+// label: Chromosome
 ca_data.genome_size = [
 {genome_size}
 ];
 
+// Sample names that are the values of id column in data file
 ca_data.index_ID = [{IDs}];
+
+// Group information
+// name : Group name
+// label: Group name
+// color: RGB color
 ca_data.group = [{group}];
+
+// Tooltip components obtained by decomposing a string of the tooltip_format
+// format: label: For fix type, a string outside the braces
+//       :      : Others, a string before the letter ":" in braces
+//       : type : One of the following: fix, numeric, str
+//       : keys : For fix type, empty string
+//       :      : Others, a string that precedes the letter ":" in braces and excludes the arithmetic term
+//       : ext  : For fix type, empty string
+//       :      : Others, a string after the letter ":" in braces
+//  keys : A concatenated string of the above "keys" values
 ca_data.tooltip_format = {{ bundle:{tooltip}, }};
+
+// Column names for option, but excluding the "group" and "id" columns
 ca_data.link_header = [{link_header}];
 """
+
 genome_size_template = '{{"chr":"{Chr:0>2}", "size":{size}, "color":"{color}", "label":"{label}",}}'
 group_template = '{{"name":"{name}", "label":"{label}", "color":"{color}" }}'
 
-js_links_1 = """// 0:ID, 1:chr1, 2:break1, 3:chr2, 4:break2, 5:is_outer, 6:group_id, 7:tooltip_data
+js_links_1 = """
+// 0:ID, 1:chr1, 2:break1, 3:chr2, 4:break2, 5:is_inner, 6:group_id, 7:tooltip_data
 ca_data.links = ["""
 js_links_2 = "];"
+
 links_template = '["{ID}","{Chr1:0>2}",{pos1},"{Chr2:0>2}",{pos2},{inner_flg},{group_id},[{tooltip}]],'
 
 js_selection = """
@@ -43,13 +74,18 @@ ca_data.select_key = [{key}];
 ca_data.select_item = [{item}];
 """
 
+#
 # html template
+#
 
 li_template = '<li class="thumb" id="thumb{id}_li"><strong>{title}<br></strong><div id="thumb{id}" onclick="ca_draw.show_float(event,\'{id}\',\'{title}\')"></div></li>\n'
 call_template = 'ca_draw.draw_bandle_thumb("{id}", "{title}");\n'
 detail_template = """<div class="float_frame" id="float{id}"><table><tr><td class="float_header" id="float{id}_t"><strong>{title}</strong></td><td><input type="button" value="X" onclick="ca_draw.hide_float('#float{id}')" margin="0"></td></tr><tr><td colspan="2" class="float_svg" id="map{id}"></td></tr></table><div class="float_handle" id="float{id}_h" onmousedown="ca_draw.mouse_down(event, '#float{id}')" onmousemove="ca_draw.mouse_move(event, '#float{id}')" onmouseup="ca_draw.mouse_up(event, '#float{id}')" onmouseout="ca_draw.mouse_out('#float{id}')"></div></div>
 """
+
+#
 # functions
+#
 
 def load_genome_size(config):
     """
@@ -150,36 +186,39 @@ def load_genome_size(config):
     return genome_size
 
 def calc_node_size(genome_size, total):
-
+    """Return node size"""
+    # total is 250 or 500
+    # Determine total and minimum length of chromosomes
     _sum = 0
-    _min = genome_size[0][1]
-
+    _min = genome_size[0][1]  # size of chr[0]
     for i in range(len(genome_size)):
-        _sum += genome_size[i][1]
+        _sum += genome_size[i][1]  # size of chr[i]
         if _min > genome_size[i][1]:
             _min = genome_size[i][1]
-
+    # Determine node size
     size = int(_sum / (total - len(genome_size)))
     if _min <= size:
         size = _min - 1
-
     return size
 
 def insite_genome(genome_size, chrom, pos):
-    # return [i,   0] : insite
-    # return [i,  >0] : range
-    # return [-1, -1] : chrom is none
-
+    """
+    Return a list of [index, length]
+    index : Index of argument2 (chromosome) in the genome list
+          : -1 if the element is not present
+    length: -1 if index is -1
+          : 0 if the argument3 (pos) is within the length of the argument2
+          : Otherwise, the length of the argument2
+    """
     for i in range(len(genome_size)):
         label = chrom.lower()
         if label[0:3] == "chr":
             label = label[3:len(label)]
-        if genome_size[i][0] == label:
-            if genome_size[i][1] >= pos:
+        if genome_size[i][0] == label:    # genome_size[i][0]: chromosome
+            if genome_size[i][1] >= pos:  # genome_size[i][1]: length of chromosome
                 return [i, 0]
             else:
                 return [i, genome_size[i][1]]
-
     return [-1, -1]
 
 def output_html(output_di, positions, config):
@@ -202,7 +241,7 @@ def output_html(output_di, positions, config):
     config: configparser.RawConfigParser
 
     Return
-    ----------
+    ------
     True on success
     """
     data = convert_tojs(output_di["dir"] + "/" + output_di["data"], output_di["dir"] + "/" + output_di["js"], positions, config)
@@ -230,8 +269,8 @@ def convert_tojs(input_file, output_file, positions, config):
     config     : configparser.RawConfigParser
 
     Return
-    ----------
-    Json format data: {"id_list": [...] "group_list": [...], "color": [...]}
+    ------
+    On success, Json format data: {"id_list": [...] "group_list": [...], "color": [...]}
     '''
     import paplot.subcode.data_frame as data_frame
     import paplot.subcode.merge as merge
@@ -264,7 +303,9 @@ def convert_tojs(input_file, output_file, positions, config):
             genome += ",\n"
         genome += genome_size_template.format(Chr=i, size=genome_size[i][1], color=genome_size[i][2], label=genome_size[i][3])
 
-    # data read
+    # Create a data frame that has title and data attributions
+    # title is a list like ['Break1', 'Break2', 'Chr1', 'Chr2', 'Sample']
+    # data is a nested list like [[16019088, 62784483, '14', '12', 'SAMPLE1'], ...]
     try:
         df = data_frame.load_file(
             input_file, header=1,
@@ -274,84 +315,94 @@ def convert_tojs(input_file, output_file, positions, config):
     except Exception as e:
         print("failure open data %s, %s" % (input_file, e.message))
         return None
-
     if len(df.data) == 0:
         print("no data %s" % input_file)
         return None
 
-    # group list
+    # Create groups, labels, and colors_n
+    # cols_di: a dictionary that merges must and option values
+    #        : ex) {'chr1': 'Chr1', 'break1': 'Break1', 'chr2': 'Chr2', 'break2': 'Break2', 'id': 'Sample'}
     cols_di = merge.position_to_dict(positions)
     if "group" in cols_di:
-        for f in range(len(df.data)):
-            group_pos = df.name_to_index(cols_di["group"])
-            group = df.data[f][group_pos]
-            df.data[f][group_pos] = group.replace(" ", "_")
+        for i in range(len(df.data)):
+            # A title may be stored in cols_di["group"]
+            group_pos = df.name_to_index(cols_di["group"])  # Get group(title) index
+            group = df.data[i][group_pos]                   # Get group(title) value for row i
+            # Modify group value
+            df.data[i][group_pos] = group.replace(" ", "_")
             if group == "":
-                df.data[f][group_pos] = "_blank_"
-
+                df.data[i][group_pos] = "_blank_"
+        # groups  : list: group names
+        # labels  : list: group names
+        # colors_n: list: color values for groups
         [groups, colors_n] = convert.group_list(df.column(cols_di["group"]), "ca", "group", config)
         labels = groups
-
     else:
         groups = ["outer", "inner"]
         labels = ["Inter-chromosome", "Intra-chromosome"]
-        colors_n = ["#9E4A98", "#51BF69"]
+        colors_n = ["#9E4A98", "#51BF69"]  # purple, green
 
+    # Create group_text that is a dictionary-style string with name, label, color
     conbined = []
     for i in range(len(groups)):
         conbined.append(group_template.format(name=groups[i], label=labels[i], color=colors_n[i]))
-
     group_text = ",".join(conbined)
 
-    # ID list
+    # id_list: Values for "id" column
+    #        : Sorted without duplicates
     id_list = []
     for row in df.data:
-        iid = row[df.name_to_index(cols_di["id"])]
+        iid = row[df.name_to_index(cols_di["id"])]  # iid: column value for "id" title
         if iid != "":
             id_list.append(iid)
     id_list = list(set(id_list))
     id_list.sort()
 
-    option_keys = tools.dict_keys(cols_di)
-    option_keys.remove("id")
-    option_keys.remove("chr1")
-    option_keys.remove("break1")
-    option_keys.remove("chr2")
-    option_keys.remove("break2")
+    # option_keys: Store the option keys of the positions dictionary
+    option_keys = tools.dict_keys(cols_di)  # option_keys: list: sorted keys of cols_di
+    option_keys.remove("id")      # option key
+    option_keys.remove("chr1")    # must key
+    option_keys.remove("break1")  # must key
+    option_keys.remove("chr2")    # must key
+    option_keys.remove("break2")  # must key
     if "group" in option_keys:
-        option_keys.remove("group")
+        option_keys.remove("group")  # option key
 
-    # node_size
+    # node_size: Size to divide chromosomes
     node_size_select = tools.config_getint(config, "ca", "selector_split_size", 5000000)
 
+    # Write a part of JavaScript file
     f = open(output_file, "w")
-
     f.write(js_header + js_dataset.format(
-        node_size_detail=calc_node_size(genome_size, 500),
-        node_size_thumb=calc_node_size(genome_size, 250),
-        node_size_select=node_size_select,
-        genome_size=genome,
-        IDs=convert.list_to_text(id_list),
-        group=group_text,
-        tooltip=convert.pyformat_to_jstooltip_text(cols_di, config, "ca", "result_format_ca", "tooltip_format"),
+        node_size_detail=calc_node_size(genome_size, 500),  # node size for detailed thumbnails
+        node_size_thumb=calc_node_size(genome_size, 250),   # node size for rough thumbnails
+        node_size_select=node_size_select,                  # node size for bar graph
+        genome_size=genome,                 # A dictionary-style string containing keys of "chr", "size", "color", and "label"
+        IDs=convert.list_to_text(id_list),  # A comma-separated string of id column values
+        group=group_text,                   # A dictionary-style string containing keys of "name", "label", and "color"
+        tooltip=convert.pyformat_to_jstooltip_text(cols_di, config, "ca", "result_format_ca", "tooltip_format"),  # A dictionary-style string containing keys of "name", "label", and "color"
         link_header=convert.list_to_text(option_keys),
     ))
 
-    # write links
+    # Write link part of JavaScript file
+
+    f.write(js_links_1)  # Write the beginning part
+
     data_links = []
-
-    f.write(js_links_1)
-
     for row in df.data:
-        iid = row[df.name_to_index(cols_di["id"])]
+        iid = row[df.name_to_index(cols_di["id"])]  # iid: the value of "id" column
+        # Ignore empty string
         if iid == "":
             continue
 
-        chr1 = str(row[df.name_to_index(cols_di["chr1"])])
-        pos1 = row[df.name_to_index(cols_di["break1"])]
-        chr2 = str(row[df.name_to_index(cols_di["chr2"])])
-        pos2 = row[df.name_to_index(cols_di["break2"])]
+        chr1 = str(row[df.name_to_index(cols_di["chr1"])])  # chromosome1
+        pos1 = row[df.name_to_index(cols_di["break1"])]     # break point1
+        chr2 = str(row[df.name_to_index(cols_di["chr2"])])  # chromosome2
+        pos2 = row[df.name_to_index(cols_di["break2"])]     # break point2
 
+        # Check if chr1 and chr2 is in the genome list
+        # Check if pos1 and pos2 is in the chr1 length
+        # index1 and index2 are the index of the elements in genome list (genome_size[i][0])
         [index1, rang] = insite_genome(genome_size, chr1, pos1)
         if rang > 0:
             print("breakpoint 1 is over range. chr%s: input=%d, range=%d" % (chr1, pos1, rang))
@@ -359,7 +410,6 @@ def convert_tojs(input_file, output_file, positions, config):
         if rang < 0:
             #print("chr1 is undefined. %s" % (chr1))
             continue
-
         [index2, rang] = insite_genome(genome_size, chr2, pos2)
         if rang > 0:
             print("breakpoint 2 is over range. chr%s: input=%d, range=%d" % (chr2, pos2, rang))
@@ -368,37 +418,46 @@ def convert_tojs(input_file, output_file, positions, config):
             #print("chr2 is undefined. %s" % (chr2))
             continue
 
+        # Whether chr1 and chr2 are the same chromosome
         inner_flg = "false"
         if (chr1 == chr2):
             inner_flg = "true"
 
+        # Set group_id: -1, 0, 1, index values of groups
+        group_id = -1  # Not belong to any groups
+        if "group" in cols_di:
+            # If the value of group column is in group list, then group_id is the index of the list
+            # Others, group_id is -1
+            group_id = convert.value_to_index(groups, row[df.name_to_index(cols_di["group"])], -1)
+        else:
+            if inner_flg == "false":
+                group_id = 0  # chr1 and chr2 are in the different group
+            else:
+                group_id = 1  # chr1 and chr2 are in the same group
+
+        # Add an element to data_links
+        data_links.append([iid, index1, pos1, index2, pos2, group_id])
+
+        # tooltip_items: Data for tooltip
         tooltip_items = []
-        for k in range(len(option_keys)):
+        for k in range(len(option_keys)):  # Loop in the column titles except group, id, and must keys (chr1, chr2, break1, and break2)
             key = option_keys[k]
             if cols_di[key] == "":
                 continue
             tooltip_items.append(row[df.name_to_index(cols_di[key])])
 
-        group_id = -1
-        if "group" in cols_di:
-            group_id = convert.value_to_index(groups, row[df.name_to_index(cols_di["group"])], -1)
-        else:
-            if inner_flg == "false":
-                group_id = 0
-            else:
-                group_id = 1
+        # Write a link
+        f.write(links_template.format(
+            ID=iid,
+            Chr1=index1, pos1=pos1, Chr2=index2, pos2=pos2,
+            inner_flg=inner_flg,
+            group_id=group_id,
+            tooltip="[" + convert.list_to_text(tooltip_items) + "],"))
 
-        data_links.append([iid, index1, pos1, index2, pos2, group_id])
-
-        f.write(links_template.format(ID=iid,
-                                      Chr1=index1, pos1=pos1, Chr2=index2, pos2=pos2,
-                                      inner_flg=inner_flg,
-                                      group_id=group_id,
-                                      tooltip="[" + convert.list_to_text(tooltip_items) + "],"))
-
-    f.write(js_links_2)
+    f.write(js_links_2)  # Write the ending part
 
     # integral bar item
+
     link = []
     for g in range(len(groups)):
         link.append({})

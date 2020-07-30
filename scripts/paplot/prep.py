@@ -66,8 +66,8 @@ def copy_dir_layout(dst):
 
 def create_dirs(args_output_dir, project_name, config):
     """
-    Creates an output directory hierarchy
-    Returns the project directory path
+    Create an output directory hierarchy
+    Return the project directory path
     """
     # output directory
     #   +--- project_name

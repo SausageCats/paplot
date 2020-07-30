@@ -10,7 +10,7 @@ $Id: merge.py 204 2017-08-02 08:23:55Z aokada $
 from . import tools
 
 def load_potisions(mode, config):
-    """Returns a nested dictionary with required and optional column entries"""
+    """Return a nested dictionary with required and optional column entries"""
     # The nested dictionary is like {"must": must_di, "option": option_di}
     # must_di: dictionary
     #   key  : A string without the leading col_ of the key name col_*** defined in a config file
@@ -127,7 +127,7 @@ def _merge_metadata(files, option):
     return meta_text
 
 def _merge_title(files, mode, option, config):
-    """Returns a list of titles(column names) extracted from input files headers with no duplicates"""
+    """Return a list of titles(column names) extracted from input files headers with no duplicates"""
 
     if option["header"] is False:
         return []
@@ -172,7 +172,7 @@ def merge_result(files, ids, output_file, mode, config, extract=False):
                      : The tities correspond to the column names of output_file
 
     Return
-    ----------
+    ------
     On failure, empty dictionary
     On success, a nested dictionary: {'must'  : {key1: title1, ...},
                                       'option': {key2: title2, ...}}
@@ -235,7 +235,7 @@ def with_header(files, ids, output_file, mode, config, extract=False):
             titles.append(positions["option"][key])
 
     # update positions to merged title
-    # Both positions and titles must have id value(positions["option"]["id"])
+    # Both positions and titles must have id value (positions["option"]["id"])
     if ("id" in positions["option"]) is False:
         positions["option"]["id"] = "id"
     if (positions["option"]["id"] in titles) is False:
@@ -413,6 +413,7 @@ def with_noheader(files, ids, output_file, mode, config, extract=False):
     return positions
 
 def position_to_dict(position):
+    """Return a dictionary that merges the values of must and option"""
     di = {}
     for key in position["must"]:
         di[key] = position["must"][key]

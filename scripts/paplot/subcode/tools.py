@@ -16,16 +16,15 @@ def config_getboolean(config, section, item):
     return value
 
 def config_getint(config, section, item, default=-1):
-
+    """Return the int value for a key from a section in the configuration file"""
     value = default
     if config.has_option(section, item) is True:
         value = config.getint(section, item)
-
     return value
 
 def config_getpath(config, section, item, default=""):
     """
-    Returns the path set in the configuration file
+    Return the path set in the configuration file
     If not set, returns the default value or empty string
     """
 
@@ -53,20 +52,21 @@ def config_getjson(config, section, item, default=""):
     return obj
 
 def config_getstr(config, section, item, default=""):
-
+    """
+    Return a value for a key from a section in the configuration file
+    Any double quotes in the value are excluded
+    """
     value = default
     if config.has_option(section, item) is True:
         value = config.get(section, item).strip().replace('"', '')
-
     return value
 
 def config_getoptions(config, section, item_startswith):
-
+    """Return a list of elements with some matching keys from a section"""
     li = []
     for item in config.options(section):
         if item.startswith(item_startswith):
             li.append(item)
-
     return li
 
 def config_set(config, section, item, value):
@@ -79,9 +79,9 @@ def config_set(config, section, item, value):
     return value
 
 def dict_keys(di):
+    """Sort and return the keys of a dictionary"""
     li = list(di.keys())
     li.sort()
-
     return li
 
 def get_idlist(file_list, suffix):

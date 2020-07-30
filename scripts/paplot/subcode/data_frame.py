@@ -14,19 +14,17 @@ class DataFrame:
         self.data = []
         self.title = []
 
-    def column(self, col):
+    def column(self, col):  # col may be one of title if col is str type
+        """Return the column data for an argument(col)"""
         if type(col) == str:
             col_index = self.name_to_index(col)
-
         elif type(col) == int:
             col_index = col
         else:
             return []
-
         li = []
         for row in self.data:
             li.append(row[col_index])
-
         return li
 
     def concat(self, data, title):
@@ -83,10 +81,10 @@ class DataFrame:
         return ret
 
     def name_to_index(self, name):
+        """Return an index of the title on success"""
         for index in range(len(self.title)):
             if self.title[index] == name:
                 return index
-
         return -1
 
     def replace(self, before, after):
@@ -121,7 +119,7 @@ class DataFrame:
         f.close()
 
 def _usecol(filepath, sept, header, skipfooter, comment):
-    """Returns a range(0, the maximum number of columns)"""
+    """Return a range(0, the maximum number of columns)"""
 
     # number of lines in file excluding the footer
     end = sum(1 for line in open(filepath)) - skipfooter
@@ -159,7 +157,7 @@ def _usecol(filepath, sept, header, skipfooter, comment):
     return usecol
 
 def _f_usecol(usecol):
-    """Returns a list of positive elements"""
+    """Return a list consisting of only non-negative values"""
     cols = []
     for u in usecol:
         if u >= 0:
@@ -167,48 +165,59 @@ def _f_usecol(usecol):
     return cols
 
 def load_title(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="#"):
+    """Return a title list extracted from the header lines of the file"""
 
-    # filepath is exists
+    # Check for the existence of filepath
     import os
     if os.path.exists(filepath) is False:
-        print("File is not exist. %s" % filepath)
+        print("File does not exist. %s" % filepath)
         return []
 
     sept = sept.replace("\\t", "\t").replace("\\n", "\n").replace("\\r", "\r")
 
-    # create usecol
+    # Create usecol that stores the column index
     if usecol is None:
+        # usecol: range class
         usecol = _usecol(filepath, sept, header, skipfooter, comment)
     else:
+        # usecol: list
         usecol = _f_usecol(usecol)
 
-    # create title
+    # Create title
     title = []
     i = -1
     for line in open(filepath):
         line = line.rstrip("\r\n")
+        # Ignore empty line
         if len(line) == 0:
             continue
+        # Ignore comment line
         if len(comment) > 0 and line.find(comment) == 0:
             continue
-
+        # Ignore data line
         i += 1
         if i >= header:
             break
 
+        # line is header line
         cols = line.split(sept)
-
         for j in range(len(usecol)):
             value = cols[usecol[j]]
-
             if i == 0:
                 title.append(value)
             else:
-                title[j] += value
+                title[j] += value  # Two or more header lines are possible
 
     return title
 
 def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="#"):
+    """
+    Return a data frame instance with the attributions of title and data
+    These attributions are created here from the filepath specified in first argument of this function
+    title: list       : Column titles in the file's header line
+    data : nested list: data[i] is a list with elements that split file's row[i] by title(column)
+                      : For numeric expression string, they are cast to numbers
+    """
 
     df = DataFrame()
 
@@ -224,7 +233,7 @@ def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="
     # Delimiter
     sept = sept.replace("\\t", "\t").replace("\\n", "\n").replace("\\r", "\r")
 
-    # Create usecol
+    # Create usecol that stores the column index
     if usecol is None:
         # usecol: range class
         usecol = _usecol(filepath, sept, header, skipfooter, comment)
@@ -232,65 +241,76 @@ def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="
         # usecol: list
         usecol = _f_usecol(usecol)
 
-    # create title
+    # Create title
     title = load_title(filepath, sept, usecol, header, skipfooter, comment)
 
-    # load to data[row][col]
+    # Create tmp: a nested list
+    # tmp elements are lists of data rows separated by columns
     tmp = []
     header_counter = -1
     line_counter = -1
+    with open(filepath) as f:
+        for line in f:
+            line_counter += 1
+            line = line.rstrip("\r\n")
+            # Ignore empty line
+            if len(line) == 0:
+                continue
+            # Ignore comment line
+            if len(comment) > 0 and line.find(comment) == 0:
+                continue
+            # Ignore header line
+            header_counter += 1
+            if header_counter < header:
+                continue
+            # Ignore footer line
+            if line_counter >= end:
+                break
 
-    for line in open(filepath):
-        line_counter += 1
+            # line is data line
+            cols = line.split(sept)
+            picks = []
+            for j in usecol:
+                value = ""
+                if (j >= 0) and (j < len(cols)):
+                    value = cols[j]
+                picks.append(value)
 
-        line = line.rstrip("\r\n")
-        if len(line) == 0:
-            continue
-        if len(comment) > 0 and line.find(comment) == 0:
-            continue
+            tmp.append(picks)
 
-        header_counter += 1
-        if header_counter < header:
-            continue
-        if line_counter >= end:
-            break
+    # Determine the types of column data
 
-        cols = line.split(sept)
-        picks = []
-        for j in usecol:
-            value = ""
-            if (j >= 0) and (j < len(cols)):
-                value = cols[j]
-            picks.append(value)
+    # Type definition
+    TYPE_INT = 0    # selected if column data can be cast to int
+    TYPE_FLOAT = 1  # selected if column data can be cast to float but cannot be cast to int
+    TYPE_TEXT = 2   # selected if column data cannot be cast to int or float
 
-        tmp.append(picks)
-
-    # change type
-    TYPE_INT = 0
-    TYPE_FLOAT = 1
-    TYPE_TEXT = 2
-
+    # Stores the initial type
     type_list = []
     for i in usecol:
         type_list.append(TYPE_INT)
 
+    # Determine types
     for row in tmp:
         for pos in range(len(row)):
+            # Check for a numeric type
             if type_list[pos] == TYPE_TEXT:
                 continue
-
+            # Check for int type
             if type_list[pos] == TYPE_INT:
                 try:
                     int(row[pos])
                 except Exception:
                     type_list[pos] = TYPE_FLOAT
-
+            # Check for float type
             if type_list[pos] == TYPE_FLOAT:
                 try:
                     float(row[pos])
                 except Exception:
                     type_list[pos] = TYPE_TEXT
 
+    # Create data that is similar to tmp
+    # data elements are cast if columns are numeric type
     data = []
     for row in tmp:
         li = []
@@ -301,9 +321,9 @@ def load_file(filepath, sept=",", usecol=None, header=0, skipfooter=0, comment="
                 li.append(float(row[pos]))
             else:
                 li.append(row[pos])
-
         data.append(li)
 
+    # DataFrame attributions
     df.data = data
     df.title = title
 

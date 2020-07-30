@@ -88,7 +88,7 @@ def ca_main(args):
     func        : function: This function (ca_main)
 
     Return
-    ----------
+    ------
     None
     '''
     # The default values of the variables are defined in the file: ../../paplot
