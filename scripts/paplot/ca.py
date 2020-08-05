@@ -6,9 +6,10 @@ Created on Wed Feb 03 12:31:47 2016
 
 $Id: ca.py 205 2017-08-08 06:25:59Z aokada $
 """
+import re
 
 #
-# js template
+# JS template
 #
 
 js_header = """(function() {
@@ -64,24 +65,62 @@ group_template = '{{"name":"{name}", "label":"{label}", "color":"{color}" }}'
 js_links_1 = """
 // 0:ID, 1:chr1, 2:break1, 3:chr2, 4:break2, 5:is_inner, 6:group_id, 7:tooltip_data
 ca_data.links = ["""
-js_links_2 = "];"
-
 links_template = '["{ID}","{Chr1:0>2}",{pos1},"{Chr2:0>2}",{pos2},{inner_flg},{group_id},[{tooltip}]],'
+js_links_2 = "];\n"
 
 js_selection = """
+// select_value: The number of id values at a break position of a chromosome in a group
+//             : The number of duplicate id's is also counted
 ca_data.select_value = [{value}];
+
+// select_key: [The index of ca_data.genome_size, Break position]
 ca_data.select_key = [{key}];
+
+// select_item: The indexes of ca_data.index_ID
 ca_data.select_item = [{item}];
 """
 
 #
-# html template
+# HTML template
 #
 
-li_template = '<li class="thumb" id="thumb{id}_li"><strong>{title}<br></strong><div id="thumb{id}" onclick="ca_draw.show_float(event,\'{id}\',\'{title}\')"></div></li>\n'
-call_template = 'ca_draw.draw_bandle_thumb("{id}", "{title}");\n'
-detail_template = """<div class="float_frame" id="float{id}"><table><tr><td class="float_header" id="float{id}_t"><strong>{title}</strong></td><td><input type="button" value="X" onclick="ca_draw.hide_float('#float{id}')" margin="0"></td></tr><tr><td colspan="2" class="float_svg" id="map{id}"></td></tr></table><div class="float_handle" id="float{id}_h" onmousedown="ca_draw.mouse_down(event, '#float{id}')" onmousemove="ca_draw.mouse_move(event, '#float{id}')" onmouseup="ca_draw.mouse_up(event, '#float{id}')" onmouseout="ca_draw.mouse_out('#float{id}')"></div></div>
+# Rough thumbnail
+li_template = """
+<li class="thumb" id="thumb{id}_li">
+  <strong>{title}<br /></strong>
+  <div id="thumb{id}" onclick="ca_draw.show_float(event,'{id}','{title}')"></div>
+</li>
 """
+li_template = re.sub(r"\n\s*", "", li_template) + "\n"
+
+call_template = 'ca_draw.draw_bandle_thumb("{id}", "{title}");\n'
+
+# Detailed thumbnail
+detail_template = """
+<div class="float_frame" id="float{id}">
+  <table>
+    <tr>
+      <td class="float_header" id="float{id}_t"><strong>{title}</strong></td>
+      <td><input type="button" value="X" onclick="ca_draw.hide_float('#float{id}')" margin="0" /></td>
+    </tr>
+    <tr>
+      <td colspan="2" class="float_svg" id="map{id}"></td>
+    </tr>
+  </table>
+  <div
+    class="float_handle"
+    id="float{id}_h"
+    onmousedown="ca_draw.mouse_down(event, '#float{id}')"
+    onmousemove="ca_draw.mouse_move(event, '#float{id}')"
+    onmouseup="ca_draw.mouse_up(event, '#float{id}')"
+    onmouseout="ca_draw.mouse_out('#float{id}')"
+  ></div>
+</div>
+"""
+detail_template = re.sub(r"\n\s+", "\n", detail_template)
+detail_template = re.sub(r"\n([<>])", "\\1", detail_template)
+detail_template = re.sub(r"\n", " ", detail_template)
+detail_template = re.sub(r" $", "\n", detail_template)
 
 #
 # functions
@@ -223,16 +262,18 @@ def insite_genome(genome_size, chrom, pos):
 
 def output_html(output_di, positions, config):
     """
+    Create JavaScript and HTML files
+
     Parameters
     ----------
     output_di: dict
              : Has the following keys and values
                'dir'    : Project directory full path
-               'data'   : Data file name like csv
+               'data'   : filenames for formatted data
                'js'     : JavaScript file name
                'html'   : HTML file name
                'project': Project name given by user on command line
-               'title'  : 'CA graphs' as default
+               'title'  : Report title. The default is "CA graphs"
     positions: a nested dict
              : For example, the following dictionary
                'must'  : {'chr1': 'Chr1', 'break1': 'Break1', 'chr2': 'Chr2', 'break2': 'Break2'},
@@ -245,7 +286,7 @@ def output_html(output_di, positions, config):
     True on success
     """
     data = convert_tojs(output_di["dir"] + "/" + output_di["data"], output_di["dir"] + "/" + output_di["js"], positions, config)
-    # data is the following json form
+    # data is a dictionary like this:
     # {
     #   'id_list'   : ['SAMPLE1', 'SAMPLE2', ... ],
     #   'group_list': ['outer'  , 'inner'],
@@ -259,18 +300,22 @@ def output_html(output_di, positions, config):
 
 def convert_tojs(input_file, output_file, positions, config):
     '''
-    Create Json format data
+    Convert the input files to Json data and write them to the Javascript file
+    Also write functions and methods to process those data
 
     Parameters
     ----------
     input_file : str : The absolute path of formatted data file
     output_file: str : The absolute path of JavaScript file
-    positions  : dict: A nested dictionary with 'must' and 'option' as keys
+    positions  : dict: A nested dictionary with "must" and "option" as keys
     config     : configparser.RawConfigParser
 
     Return
     ------
-    On success, Json format data: {"id_list": [...] "group_list": [...], "color": [...]}
+    On success, return a dictionary: {"id_list": [...] "group_list": [...], "color": [...]}
+        id_list   : The values for id column
+        group_list: The names of groups
+        color     : The colors in groups
     '''
     import paplot.subcode.data_frame as data_frame
     import paplot.subcode.merge as merge
@@ -285,7 +330,6 @@ def convert_tojs(input_file, output_file, positions, config):
     #     The color of the 1st element,
     #     The original name of the 1st element(that is not necessarily lowercase) or a user-defined name, ], ... ]
     genome_size = load_genome_size(config)
-
     if len(genome_size) == 0:
         return None
 
@@ -371,7 +415,8 @@ def convert_tojs(input_file, output_file, positions, config):
     # node_size: Size to divide chromosomes
     node_size_select = tools.config_getint(config, "ca", "selector_split_size", 5000000)
 
-    # Write a part of JavaScript file
+    # Write header and dataset of JavaScript file
+
     f = open(output_file, "w")
     f.write(js_header + js_dataset.format(
         node_size_detail=calc_node_size(genome_size, 500),  # node size for detailed thumbnails
@@ -384,9 +429,9 @@ def convert_tojs(input_file, output_file, positions, config):
         link_header=convert.list_to_text(option_keys),
     ))
 
-    # Write link part of JavaScript file
+    # Write link of JavaScript file
 
-    f.write(js_links_1)  # Write the beginning part
+    f.write(js_links_1)  # Write the leading part
 
     data_links = []
     for row in df.data:
@@ -402,7 +447,7 @@ def convert_tojs(input_file, output_file, positions, config):
 
         # Check if chr1 and chr2 is in the genome list
         # Check if pos1 and pos2 is in the chr1 length
-        # index1 and index2 are the index of the elements in genome list (genome_size[i][0])
+        # index1 and index2 are indexes of the genome_size for chr1 and chr2
         [index1, rang] = insite_genome(genome_size, chr1, pos1)
         if rang > 0:
             print("breakpoint 1 is over range. chr%s: input=%d, range=%d" % (chr1, pos1, rang))
@@ -424,6 +469,7 @@ def convert_tojs(input_file, output_file, positions, config):
             inner_flg = "true"
 
         # Set group_id: -1, 0, 1, index values of groups
+        #             : Sequential numbers identifying groups
         group_id = -1  # Not belong to any groups
         if "group" in cols_di:
             # If the value of group column is in group list, then group_id is the index of the list
@@ -446,7 +492,7 @@ def convert_tojs(input_file, output_file, positions, config):
                 continue
             tooltip_items.append(row[df.name_to_index(cols_di[key])])
 
-        # Write a link
+        # Write link
         f.write(links_template.format(
             ID=iid,
             Chr1=index1, pos1=pos1, Chr2=index2, pos2=pos2,
@@ -456,57 +502,67 @@ def convert_tojs(input_file, output_file, positions, config):
 
     f.write(js_links_2)  # Write the ending part
 
-    # integral bar item
+    # Write integral bar item
 
+    # link: [{bp1: iid, bp2: iid}, {...}, ...]
+    #     : Separate elements by group_id
     link = []
     for g in range(len(groups)):
         link.append({})
 
     for dl in data_links:
+        # dl = [iid, index1, pos1, index2, pos2, group_id]
+        # iid     : The value of id title
+        # index1/2: The index of genome_size
+        # pos1/2  : Bareak point
+        # group_id: Index of groups
 
+        # Chr: The index of genome_size
+        # Pos: A break position based on node
         bp1 = "root.{Chr:0>2}.{Chr:0>2}_{Pos:0>3}".format(Chr=dl[1], Pos=int(math.floor(dl[2] / node_size_select)))
         bp2 = "root.{Chr:0>2}.{Chr:0>2}_{Pos:0>3}".format(Chr=dl[3], Pos=int(math.floor(dl[4] / node_size_select)))
 
-        group = dl[5]
-        #print group
-        # add bp1
-        if bp1 not in link[group]:
-            link[group][bp1] = []
-        link[group][bp1].append(dl[0])
+        group_id = dl[5]
 
-        # add bp2
+        # For bp1
+        if bp1 not in link[group_id]:
+            link[group_id][bp1] = []
+        link[group_id][bp1].append(dl[0])  # Append iid
+
+        # For bp2
         if bp1 != bp2:
-            if bp2 not in link[group]:
-                link[group][bp2] = []
-            link[group][bp2].append(dl[0])
+            if bp2 not in link[group_id]:
+                link[group_id][bp2] = []
+            link[group_id][bp2].append(dl[0])  # Append iid
 
-    select_item_text = ""
     select_value_text = ""
     select_key_text = ""
-    for g in range(len(groups)):
-        items = []
-        values = []
-        keys = []
+    select_item_text = ""
+    for i in range(len(groups)):
+        values = []  # [Number of id, ...]
+        keys = []    # [[genome_size index, Break position], ...]
+        items = []   # [[id_list index, ...], ...]
 
-        for i in sorted(link[g].keys()):
+        for bp in sorted(link[i].keys()):
+            # values element
+            # link[i][bp]: list that stores id column values at a break position of a chromosome in a group
+            #            : Duplicate values are stored
+            values.append(len(link[i][bp]))
 
-            values.append(len(link[g][i]))
-
-            # split key to chr and pos
-            parts = i.split(".")[2].split("_")
+            # keys element
+            parts = bp.split(".")[2].split("_")  # parts: [Chr, Pos]
             keys.append([int(parts[0]), int(parts[1])])
 
-            # delete duplication
-            sort = sorted(list(set(link[g][i])))
-
+            # items element
+            sort = sorted(list(set(link[i][bp])))  # Delete duplicates
             temp = []
             for t in sort:
-                temp.append(id_list.index(t))
+                temp.append(id_list.index(t))  # id_list that stores values of id column
             items.append(temp)
 
-        select_value_text += "[%s]," % (",".join(map(str, values)).replace(" ", ""))
-        select_key_text += "[%s]," % (",".join(map(str, keys)).replace(" ", ""))
-        select_item_text += "[%s]," % (",".join(map(str, items)).replace(" ", ""))
+        select_value_text += "[%s]," % (",".join(map(str, values)).replace(" ", ""))  # += [1,1,...],
+        select_key_text += "[%s]," % (",".join(map(str, keys)).replace(" ", ""))      # += [[0,1],[0,25],...],
+        select_item_text += "[%s]," % (",".join(map(str, items)).replace(" ", ""))    # += [[9],[8],...],
 
     f.write(js_selection.format(
         value=select_value_text,
@@ -514,7 +570,9 @@ def convert_tojs(input_file, output_file, positions, config):
         item=select_item_text
     ))
 
-    f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/data_ca.js")
+    # Write rest of JavaScript file and footer
+
+    f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/data_ca.js")  # ./templates/data_ca.js
     js_function = f_template.read()
     f_template.close()
     f.write(js_function)
@@ -525,17 +583,38 @@ def convert_tojs(input_file, output_file, positions, config):
     return {"id_list": id_list, "group_list": groups, "color": colors_n}
 
 def create_html(dataset, output_di, config):
+    """
+    Create HTML file for CA
+
+    Parameters
+    ----------
+    dataset: dict: {"id_list"   : [id column values],
+                    "group_list": [group names],
+                    "color"     : [group colors]}
+    output_di: dict: {"dir"    : project directory full path,
+                      "data"   : filenames for formatted data
+                      "js"     : JavaScript file name
+                      "html"   : HTML file name
+                      "project": Project name given by user on command line
+                      "title"  : Report title. The default is "CA graphs"}
+    config: configparser.RawConfigParser
+
+    Return
+    ------
+    None
+    """
     import os
     import paplot.prep as prep
     import paplot.subcode.tools as tools
 
+    # Create strings of thumbnails to embed in HTML
     div_txt = ""
     call_txt = ""
     detail_txt = ""
     for i in range(len(dataset["id_list"])):
-        div_txt += li_template.format(id=str(i), title=dataset["id_list"][i])
-        detail_txt += detail_template.format(id=str(i), title=dataset["id_list"][i])
-        call_txt += call_template.format(id=str(i), title=dataset["id_list"][i])
+        div_txt += li_template.format(id=str(i), title=dataset["id_list"][i])         # Rough thumbnail
+        detail_txt += detail_template.format(id=str(i), title=dataset["id_list"][i])  # Detailed thumbnail
+        call_txt += call_template.format(id=str(i), title=dataset["id_list"][i])      # Drawing rough thumbnail
 #        if i >= 50:
 #            if i == 50:
 #                call_txt += call_later_header
@@ -543,20 +622,23 @@ def create_html(dataset, output_di, config):
 #        else:
 #            call_txt += call_template.format(id = str(i), title = dataset["id_list"][i])
 
-    f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/graph_ca.html")
+    # Get HTML template
+    f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/graph_ca.html")  # ./templates/graph_ca.html
     html_template = f_template.read()
     f_template.close()
 
-    f_html = open(output_di["dir"] + "/" + output_di["html"], "w")
+    # Create HTML file
+    f_html = open(output_di["dir"] + "/" + output_di["html"], "w")  # Create a file under the project directory
     f_html.write(
-        html_template.format(project=output_di["project"],
-                             title=output_di["title"],
-                             data_js=output_di["js"],
-                             version=prep.version_text(),
-                             date=tools.now_string(),
-                             div_list=div_txt,
-                             call_list=call_txt,
-                             details=detail_txt,
-                             style="../style/%s" % os.path.basename(tools.config_getpath(config, "style", "path", "default.js")),
-                             ))
+        html_template.format(
+            project=output_di["project"],  # Project name
+            title=output_di["title"],      # Report title
+            data_js=output_di["js"],       # JavaScript file
+            version=prep.version_text(),   # Paplot version
+            date=tools.now_string(),       # Cuurent time
+            div_list=div_txt,              # Rough thumbnail
+            details=detail_txt,            # Detailed thumbnail
+            call_list=call_txt,            # Drawing rough thumbnail
+            style="../style/%s" % os.path.basename(tools.config_getpath(config, "style", "path", "default.js")),  # ./style/default.js
+        ))
     f_html.close()

@@ -127,6 +127,7 @@ def ca_main(args):
         print("merge.merge_result: input file is invalid.")
         return
 
+    # Create JavaScript file and HTML file for CA
     html_name = "graph_%s.html" % args.ellipsis
     params_html = {"dir": output_html_dir,              # Project directory full path
                    "data": output_data,                 # Data file name like csv
@@ -137,8 +138,15 @@ def ca_main(args):
                    }
     ca.output_html(params_html, positions, config)
 
-    prep.create_index(config, tools.win_to_unix(args.output_dir), html_name, args.project_name, args.title,
-                      overview=args.overview, remarks=args.remarks)
+    # Create homepage
+    prep.create_index(
+        config,
+        tools.win_to_unix(args.output_dir),
+        html_name,
+        args.project_name,
+        args.title,
+        overview=args.overview,
+        remarks=args.remarks)
 
 
 def mutation_main(args):

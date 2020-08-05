@@ -121,6 +121,7 @@ def version_text():
 _META_FILE_ = ".meta.json"
 
 def _convert_index_item(json_data):
+    """Create and return html string for the link using elements from json data"""
 
     proj_template = """<h2>{proj}</h2>
 <table style="margin-left:40px;">
@@ -142,59 +143,77 @@ def _convert_index_item(json_data):
     for data in json_data:
         graphs_text = ""
         for graph in data["graphs"]:
+            # Check the existence of multiple reports
             if graph["composite"] is True:
                 td_text = ""
                 for item in graph["items"]:
+                    # Default string for link
                     link_text = item["sub_text"]
                     if link_text == "":
                         link_text = "No Data."
                     else:
                         link_text += ", No Data."
-
+                    # Overwrite the string if the report exists
                     icon = "block.png"
-                    if item["exists"]:
+                    if item["exists"]:  # Check whether report html exists
+                        # html for link
                         link_text = link_templete_td.format(proj=data["proj"], output_html=item["output_html"], sub_text=item["sub_text"])
                         icon = "bar_chart_1.png"
+                    # html for icon of link
                     td_text += graph_templete_td.format(icon=icon, link=link_text)
+                # html for folder icon, report title, and summary
                 graphs_text += graph_templete_table.format(name=graph["name"], overview=graph["overview"], td=td_text)
             else:
                 item = graph["items"][0]
-                link_text = unlink_templete.format(name=graph["name"])
+                # Defult string for html
+                link_text = unlink_templete.format(name=graph["name"])  # html for project name
                 icon = "block.png"
                 overview = "No Data."
+                # Overwrite the string if the report exists
                 if item["exists"]:
+                    # html for link
                     link_text = link_templete.format(proj=data["proj"], output_html=item["output_html"], name=graph["name"])
                     icon = "bar_chart_1.png"
                     overview = graph["overview"]
+                # html for icon of link and report summary
                 graphs_text += graph_templete.format(icon=icon, link=link_text, overview=overview)
 
+        # html for project name
         output += proj_template.format(proj=data["proj"], graphs=graphs_text)
 
     return output
 
 def _load_metadata(output_dir, output_html, project_name, name, overview, sub_text, composite, exists):
-
+    """Return json data containing project information"""
     import json
 
-    arg_data = {"proj": project_name,
-                "graphs": [{"name": name,
-                            "overview": overview,
-                            "composite": composite,
-                            "items": [{"output_html": output_html, "exists": exists, "sub_text": sub_text}]
+    arg_data = {"proj": project_name,                # Project name
+                "graphs": [{"name": name,            # Report title
+                            "overview": overview,    # Report summary
+                            "composite": composite,  # Existence of multiple reports
+                            "items": [{"output_html": output_html,  # HTML file name
+                                       "exists": exists,            # Existence of Homepage
+                                       "sub_text": sub_text}]       # Additional string
                             }]}
-    try:
-        json_data = json.load(open(output_dir + "/" + _META_FILE_))
 
-        # input args to json_data
+    # Update json data if it already exists
+    # Create a new json data if it does not exist
+    try:
+        json_data = json.load(open(output_dir + "/" + _META_FILE_))  # Hidden file
+
+        # Input args to json_data
         find = False
         for data in json_data:
+            # Ignore a known project name
             if data["proj"] != project_name:
                 continue
 
             for graph in data["graphs"]:
+                # Ignore an unknown report name
                 if graph["name"] != name:
                     continue
                 for item in graph["items"]:
+                    # Ignore an unknown HTML
                     if item["output_html"] != output_html:
                         continue
                     item["exists"] = exists
@@ -203,22 +222,26 @@ def _load_metadata(output_dir, output_html, project_name, name, overview, sub_te
                     break
 
                 if find is False:
+                    # Add an unknown HTML items
                     graph["items"].append(arg_data["graphs"][0]["items"][0])
                     find = True
                 break
 
             if find is False:
+                # Add an unknown report items
                 data["graphs"].append(arg_data["graphs"][0])
                 find = True
             break
 
         if find is False:
+            # Add an unknown project items
             json_data.append(arg_data)
 
     except Exception:
-        # create json_data from args
+        # New items
         json_data = [arg_data]
 
+    # Write json data
     f = open(output_dir + "/" + _META_FILE_, "w")
     f.writelines(json.dumps(json_data, indent=2))
     f.close()
@@ -226,33 +249,56 @@ def _load_metadata(output_dir, output_html, project_name, name, overview, sub_te
     return json_data
 
 def create_index(config, output_dir, output_html, project_name, name, overview="", sub_text="", composite=False, remarks=""):
+    """
+    Create homepage
+
+    Parameters
+    ----------
+    config      : configparser.RawConfigParser
+    output_dir  : string: Output directory path
+    output_html : string: HTML file name
+    project_name: string: Project name given by user on command line
+    name        : string: Report title
+    overview    : string: Report summary
+    sub_text    : string: Additional string to display if composite=True and a report does not exist
+    composite   : bool  : Whether or not to have multiple reports
+    remarks     : string: Additional information about report
+
+    Return
+    ----------
+    None
+    """
 
     import paplot.subcode.tools as tools
     import os
 
+    # Confirm existence of homepage
     html_exists = os.path.exists(output_dir + "/" + project_name + "/" + output_html)
     if output_html == "":
         html_exists = False
 
+    # Create json data
     json_data = _load_metadata(output_dir, output_html, project_name, name, overview, sub_text, composite, html_exists)
 
+    # Create html for link
     link_text = _convert_index_item(json_data)
 
-    f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/index.html")
+    # Load the template html for the homepage
+    f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/index.html")  # ./templates/index.html
     html_template = f_template.read()
     f_template.close()
 
+    # Extract remarks from a configuration
     if remarks == "":
         remarks = tools.config_getstr(config, "style", "remarks")
 
+    # Create html file for a homepage
     f_html = open(output_dir + "/index.html", "w")
-    f_html.write(
-        html_template.format(
-            version=version_text(),
-            date=tools.now_string(),
-            remarks=remarks,
-            link=link_text
-        )
+    f_html.write(html_template.format(
+        version=version_text(),   # Version
+        date=tools.now_string(),  # Current time
+        remarks=remarks,          # Some string
+        link=link_text)           # HTML for link
     )
     f_html.close()
 

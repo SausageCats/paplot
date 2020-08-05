@@ -154,8 +154,8 @@ def load_config(config_file):
     return [config, config_file]
 
 def now_string():
+    """Return the current time"""
     import datetime
-
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
