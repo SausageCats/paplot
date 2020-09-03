@@ -4,6 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
     <link rel="stylesheet" type="text/css" href="../layout/paplot.css" />
+    <link rel="stylesheet" type="text/css" href="../layout/ca.css" />
   </head>
   <body>
     <div class="version">
@@ -18,9 +19,34 @@
         <input type="radio" name="q2" value="hilight" onclick="ca_draw.thumb_reset()" checked /> Highlight selected graphs
         <input type="radio" name="q2" value="hide" onclick="ca_draw.thumb_reset()" /> Hide non-selected graphs
       </p>
+
+      <div id="checkbox_overlay">
+        <div>
+          Overlay options
+          <div>
+            <input type="checkbox" id="cb_opt_highlight" onclick="ca_draw.auto_overlaying('cb_opt_highlight')" checked />
+            <label for="cb_opt_highlight">
+              Automatic overlay when selecting graphs in highlight mode (Circosplot checkboxes also change automatically)
+            </label>
+          </div>
+          <div>
+            <input type="checkbox" id="cb_opt_hide" onclick="ca_draw.auto_overlaying('cb_opt_hide')" checked />
+            <label for="cb_opt_hide">
+              Automatic overlay when selecting graphs in hide mode
+            </label>
+          </div>
+          <div>
+            <input type="checkbox" id="cb_opt_checkbox" onclick="ca_draw.auto_overlaying('cb_opt_checkbox')" checked />
+            <label for="cb_opt_checkbox">
+              Automatic overlay when clicking circosplot checkboxes
+            </label>
+          </div>
+        </div>
+      </div>
       <p><input type="button" value="Reset" onclick="ca_draw.thumb_reset()" /></p>
 
-      <!-- save image --><button type="button" onclick="ca_draw.push_export()" id="dw_btn" style="margin-bottom: 20px;">
+      <!-- save image -->
+      <button type="button" onclick="ca_draw.push_export()" id="dw_btn" style="margin-bottom: 20px;">
         <img src="../layout/download.png" style="margin-right: 5px;" />Export
       </button>
       <div id="btn"></div>
@@ -29,6 +55,15 @@
       <div id="legend_svg"></div>
 
       <div id="selector"></div>
+
+      <!-- buttons for overlay -->
+      <div style="margin: 10px;">
+        <input id="btn_overlay" type="button" value="Overlay" onclick="ca_draw.start_overlay()" />
+        <input id="btn_on" type="button" value="ON" onclick="ca_draw.checkbox_on()" />
+        <input id="btn_off" type="button" value="OFF" onclick="ca_draw.checkbox_off()" />
+        <input id="btn_reverse" type="button" value="Reverse" onclick="ca_draw.checkbox_reverse()" />
+        <div id="overlay_pos"></div>
+      </div>
 
       <!-- ### tumbnails ### -->
       <div>
@@ -41,10 +76,15 @@
     <!-- ### details ### -->
 {details}
 
+    <!-- ### overlay ### -->
+{overlay}
+
     <!-- ### tooltip ### -->
     <div id="tooltip" class="hidden"></div>
     <!-- canvas for save image -->
     <canvas id="dw_canvas" class="hidden"></canvas>
+    <!-- download -->
+    <div id="download"></div>
 
     <script type="text/javascript" src="../lib/d3_v3.5.13/d3.min.js"></script>
     <script type="text/javascript" src="../lib/d3-legend_v1.10.0/d3-legend.min.js"></script>

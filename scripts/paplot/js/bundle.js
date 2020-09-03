@@ -40,13 +40,14 @@
 
       // For each import, construct a link from the source to target node.
       nodes.forEach(function (d) {
-        if (d.ends)
+        if (d.ends) {
           d.ends.forEach(function (i) {
             ends.push({
               source: map[d.start],
               target: map[i],
             });
           });
+        }
       });
 
       return ends;
@@ -224,6 +225,9 @@ bundle = (function () {
         return (d.x / 180) * Math.PI;
       });
 
+    // If there is nothing to overlay, data is undefined
+    if (data === undefined) return;
+
     var line_inner = d3.svg.line
       .radial()
       .interpolate("bundle")
@@ -291,6 +295,8 @@ bundle = (function () {
           for (var idx2 = 0; idx2 < result.length; idx2++) {
             d3.select("#tooltip").append("p").attr("id", "text").append("pre").text(result[idx2]);
           }
+          // Display tooltip at the frontmost of the screen
+          d3.select("#tooltip").style("z-index", 2147483647);
           //Show the tooltip
           d3.select("#tooltip").classed("hidden", false);
 
@@ -360,13 +366,28 @@ bundle = (function () {
   function key_to_values(list, key) {
     return list[Number(key)];
   }
-  function getLinkData_values(data, source_start, target_start) {
-    var ret = [];
 
+  // Returns the tooltip information as an array
+  function getLinkData_values(data, source_start, target_start) {
+    // data        : object
+    // source_start: string: Start position of breakpoint node
+    // target_start: string: End position of breakpoint node
+    var ret = [];
     for (var i = 0; i < data.length; i++) {
       if (data[i].start == source_start) {
         for (var j = 0; j < data[i].ends.length; j++) {
           if (data[i].ends[j] == target_start) {
+            ret.push(data[i].tooltip[j]);
+          }
+        }
+        break;
+      }
+    }
+    // Swap the start and end positions
+    for (var i = 0; i < data.length; i++) {
+      if (data[i].start == target_start) {
+        for (var j = 0; j < data[i].ends.length; j++) {
+          if (data[i].ends[j] == source_start) {
             ret.push(data[i].tooltip[j]);
           }
         }

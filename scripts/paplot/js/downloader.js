@@ -17,7 +17,7 @@ downloader = (function () {
     }
     var css_ul = {
       position: "absolute",
-      "z-index": "1000",
+      "z-index": "2147483647", // Display download window at the frontmost of the screen
       display: "inline-block",
       margin: "0px",
       padding: "0px",
@@ -144,6 +144,49 @@ downloader = (function () {
       false
     );
   };
+
+  // Event listener to display the download window of CA's floats
+  downloader.set_event_listener_for_ca_floats = function (id) {
+    var box_dl = document.getElementById("download");
+    var box_id = document.getElementById(id);
+
+    box_dl.oncontextmenu = function () {
+      return false;
+    };
+
+    box_id.oncontextmenu = function () {
+      return false;
+    };
+
+    box_id.onmousedown = function (e) {
+      // right click only
+      if (e.button == 2) {
+        var svgText = downloader.svg_text(id, 0, 0);
+        var height = Number(
+          d3
+            .select("#" + id)
+            .select("svg")
+            .style("height")
+            .replace("px", "")
+        );
+        var width = Number(
+          d3
+            .select("#" + id)
+            .select("svg")
+            .style("width")
+            .replace("px", "")
+        );
+
+        svgText = downloader.add_svgtag(svgText, height, width);
+        var scroll_pos = utils.scroll_position(document);
+        var pos_x = e.clientX + scroll_pos.x;
+        var pos_y = e.clientY + scroll_pos.y;
+
+        downloader.createMenu([pos_x, pos_y], "download", id, width, height, svgText);
+      }
+    };
+  };
+
   // *********************************************
   // save image
   // *********************************************

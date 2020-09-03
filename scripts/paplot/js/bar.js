@@ -18,6 +18,7 @@ mut_bar = (function () {
       tooltip: { enable: true, position: "parent", sift_x: 0, sift_y: 0 },
       multi_select: false,
       brush: { enable: false, rect: 0, fill: "yellow", stroke: "yellow", opacity: 0.2 },
+      brushend: { enable: false }, // For overlay
       direction_x: "left-right",
       direction_y: "bottom-up",
       grid_xs: [],
@@ -415,6 +416,13 @@ mut_bar = (function () {
           var list = that._keys_from_sort_list(that.asc.sort_list, start_index, end_index);
           that.brushed(list, data);
         });
+
+      // This event is required to know when to overlay circosplots
+      if (this.options.brushend.enable) {
+        brush.on("brushend", function () {
+          that.brushend(); // No arguments are given
+        });
+      }
 
       this.brush_obj = this.svg_obj
         .append("g")
@@ -1360,6 +1368,10 @@ mut_bar = (function () {
   };
   p.brushed = function (data, range) {
     console.log("mut_bar.brushed(): called base-function, please over-ride.");
+  };
+  // For overlay
+  p.brushend = function () {
+    console.log("mut_bar.brushend(): called base-function, please over-ride.");
   };
   return mut_bar;
 })();

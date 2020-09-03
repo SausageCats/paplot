@@ -1,0 +1,22 @@
+@charset "utf-8";
+
+input[id^="btn_"] {
+  position: relative;
+  text-align: center;
+  background-color: #efefef;
+  font-size: 14px;
+  color: #000;
+  padding: 0.1em 0.4em;
+  border: solid 1px #000;
+  border-radius: 3px;
+  box-shadow: 0 2.5px 0 #666;
+  outline: none;
+}
+
+input[id^="btn_"]:hover {
+  opacity: 0.7
+}
+input[id^="btn_"]:active {
+  top: 2.5px;
+  box-shadow: none;
+}

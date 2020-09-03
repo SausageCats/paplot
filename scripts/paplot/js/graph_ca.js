@@ -219,6 +219,7 @@
     div_select_bar.options.direction_x = "left-right";
     div_select_bar.options.direction_y = "bottom-up";
     div_select_bar.options.brush.enable = true;
+    div_select_bar.options.brushend.enable = true; // Event for mouseup on bar graph
 
     div_select_bar.options.grid_y = new div_select_bar.grid_template();
     div_select_bar.options.grid_y.ticks = 2;
@@ -330,12 +331,15 @@
   };
 
   ca_draw.thumb_reset = function () {
+    var saved_func = div_select_bar.brushend;
+    div_select_bar.brushend = function () {};
     div_select_bar.brush_reset();
-
+    div_select_bar.brushend = saved_func;
     for (var i = 0; i < ca_data.index_ID.length; i++) {
       d3.select("#thumb" + i + "_li").classed("hidden", false);
       d3.select("#thumb" + i).style("background-color", "#FFFFFF");
     }
+    checkbox_reset();
   };
 
   function selection_mode() {
@@ -445,8 +449,10 @@
       copy_obj(link_style_detail[i], bundles[ID].link_style[i]);
     }
     bundles[ID].enable_tooltip = true;
+
     bundles[ID].draw_bundle(obj, ca_data.get_arc_data_detail(), ca_data.get_data_detail(ID), options);
-    downloader.set_event_listner(obj, true);
+
+    downloader.set_event_listener_for_ca_floats(obj);
   }
 
   var thumbs = {};
@@ -495,7 +501,7 @@
 
     draw_bandle("map" + idx, ID);
 
-    var pos = get_pos("thumb" + idx);
+    var pos = get_pos(idx, "thumb" + idx);
 
     d3.select("#float" + idx + "_t")
       .style("color", style_sv_detail.win_header_text_color)
@@ -508,6 +514,8 @@
       .style("left", String(pos[0]) + "px")
       .style("top", String(pos[1]) + "px")
       .style("visibility", "visible");
+
+    set_zindex("#float" + idx);
   };
   ca_draw.hide_float = function (id) {
     d3.select(id).style("visibility", "hidden");
@@ -519,25 +527,26 @@
 
   ca_draw.mouse_down = function (event, id) {
     item = id;
-    mouse_x = event.screenX;
-    mouse_y = event.screenY;
+    mouse_x = event.pageX;
+    mouse_y = event.pageY;
     d3.select(id).style("opacity", 0.4);
     d3.select(id + "_h").classed("float_move", true);
+    set_zindex(id);
   };
   ca_draw.mouse_move = function (event, id) {
     if (item != id) {
       return;
     }
-    var dist_x = mouse_x - event.screenX;
-    var dist_y = mouse_y - event.screenY;
+    var dist_x = mouse_x - event.pageX;
+    var dist_y = mouse_y - event.pageY;
     if (Math.abs(dist_x) < 1 && Math.abs(dist_y) < 1) {
       return;
     }
     d3.select(id).style("left", String(pos_tonum(d3.select(id).style("left")) - dist_x) + "px");
     d3.select(id).style("top", String(pos_tonum(d3.select(id).style("top")) - dist_y) + "px");
 
-    mouse_x = event.screenX;
-    mouse_y = event.screenY;
+    mouse_x = event.pageX;
+    mouse_y = event.pageY;
   };
   ca_draw.mouse_up = function (event, id) {
     if (item != id) {
@@ -565,20 +574,302 @@
     return Number(pos_txt.replace(/px/g, ""));
   }
 
-  function get_pos(id) {
-    var rect = document.getElementById(id).getBoundingClientRect();
+  function get_pos(idx, id) {
+    // Return the current position if the specified float window exists
+    var style = d3.select("#float" + idx)[0][0].style;
+    if (style.visibility === "visible") {
+      return [style.left.replace("px", ""), style.top.replace("px", "")];
+    }
 
-    var dElm = document.documentElement,
-      dBody = document.body;
+    // Return a predetermined position
+    var rect = document.getElementById(id).getBoundingClientRect();
+    var dElm = document.documentElement;
+    var dBody = document.body;
     var scrollX = dElm.scrollLeft || dBody.scrollLeft;
     var scrollY = dElm.scrollTop || dBody.scrollTop;
-
     return [rect.left + scrollX, rect.top + scrollY];
   }
 
   ca_draw.resize_if = function () {
     div_select_bar.resize();
   };
+
+  // -----------------------------------------------------------------------------
+  // Overlay
+  // -----------------------------------------------------------------------------
+
+  var overlay_idx = ca_data.index_ID.length + 1;
+  var overlay_id = "OVERLAY";
+  while (ca_data.index_ID.indexOf(overlay_id) != -1) overlay_id += "_";
+
+  //
+  // Bar graph
+  //
+
+  // On mouseup
+  div_select_bar.brushend = function () {
+    check_checkboxes();
+    ca_draw.auto_overlaying("bargraph");
+  };
+
+  //
+  // Thumbnail overlay
+  //
+
+  ca_draw.auto_overlaying = function (event_loc) {
+    // event_loc is the following triggered location
+    //   cb_thumb  : checkboxes for thumbnails
+    //   cb_opt_***: checkboxes for overlay settings
+    //   btn_***   : ON, OFF, and Reverse buttons
+    //   bargraph  : bar graph
+
+    if (!is_alive_overlay_window()) return;
+
+    if (event_loc.match(/^cb_opt_/)) {
+      if (event_loc === "cb_opt_highlight" && !document.getElementById("cb_opt_highlight").checked) return;
+      else if (event_loc === "cb_opt_hide" && !document.getElementById("cb_opt_hide").checked) return;
+      else if (event_loc === "cb_opt_checkbox" && !document.getElementById("cb_opt_checkbox").checked) return;
+    } else if (event_loc.match(/^btn_/)) {
+      if (!document.getElementById("cb_opt_checkbox").checked) return;
+    } else if (event_loc === "bargraph") {
+      if (selection_mode() === "hilight" && !document.getElementById("cb_opt_highlight").checked) return;
+      else if (selection_mode() === "hide" && !document.getElementById("cb_opt_hide").checked) return;
+    } else if (event_loc === "cb_thumb") {
+      if (!document.getElementById("cb_opt_checkbox").checked) return;
+    } else {
+      console.log("[Error] event_loc is an improper value");
+      return;
+    }
+
+    if (event_loc === "cb_opt_highlight") check_checkboxes();
+
+    var is_graph_event = event_loc === "bargraph" ? true : false;
+    ca_draw.start_overlay(is_graph_event);
+  };
+
+  ca_draw.start_overlay = function (is_graph_event) {
+    if (is_graph_event === undefined) is_graph_event = false;
+    // Change the background color of window title during overlay creation
+    d3.select("#float" + overlay_idx + "_t").style("background-color", "#0ff");
+    setTimeout(function () {
+      try {
+        start_overlay(is_graph_event);
+      } finally {
+        d3.select("#float" + overlay_idx + "_t").style("background-color", style_sv_detail.win_header_background_color);
+      }
+    }, 0);
+  };
+
+  var old_target_thumbs;
+  function start_overlay(is_graph_event) {
+    // Get thumbnails to overlay
+    var target_thumbs = get_target_thumbs(is_graph_event);
+
+    // Stop if drawing the same as the previous one
+    if (
+      is_alive_overlay_window() && //
+      JSON.stringify(target_thumbs) === JSON.stringify(old_target_thumbs)
+    )
+      return;
+    old_target_thumbs = target_thumbs;
+
+    var idx = overlay_idx;
+    var pos = get_pos(idx, "overlay_pos"); // NOTE: Get position before drawing
+
+    // Draw
+    draw_overlay(target_thumbs);
+
+    // Set window title colors
+    d3.select("#float" + idx + "_t")
+      .style("color", style_sv_detail.win_header_text_color)
+      .style("background-color", style_sv_detail.win_header_background_color);
+
+    // Set window style
+    d3.select("#float" + idx)
+      .style("border-color", style_sv_detail.win_border_color)
+      .style("border-width", style_sv_detail.win_border_width)
+      .style("background-color", style_sv_detail.win_background_color)
+      .style("left", String(pos[0]) + "px")
+      .style("top", String(pos[1]) + "px")
+      .style("visibility", "visible");
+
+    // Set zindex
+    set_zindex("#float" + idx);
+  }
+
+  function get_target_thumbs(is_graph_event) {
+    var thumb_cbs = document.getElementsByName("thumb_cb");
+    var n_thumbs = thumb_cbs.length;
+    var mode = selection_mode();
+
+    var selected = [];
+    // Select thumbnails from the highlight/hidden mode
+    if (mode === "hilight") {
+      if (document.getElementById("cb_opt_highlight").checked && is_graph_event) {
+        for (var i = 0; i < n_thumbs; i++) selected.push(is_thumb_highlighted(i));
+      } else {
+        for (var i = 0; i < n_thumbs; i++) selected.push(true);
+      }
+    } else if (mode === "hide") {
+      for (var i = 0; i < n_thumbs; i++) selected.push(is_thumb_visible(i));
+    }
+    // Select thumbnails from their checkboxes
+    var targets = [];
+    for (var i = 0; i < n_thumbs; i++) {
+      if (thumb_cbs[i].checked && selected[i]) {
+        targets.push({ idx: thumb_cbs[i].value, id: ca_data.index_ID[i] });
+      }
+    }
+
+    return targets;
+  }
+
+  // Gather and draw data for overlay
+  function draw_overlay(target_thumbs) {
+    var obj = "map" + overlay_idx;
+    var ID = overlay_id;
+
+    // Delete
+    if (bundles[ID] !== undefined) delete_overlay();
+
+    // Gather target data
+    var data;
+    if (target_thumbs.length != 0) {
+      data = ca_data.get_data_detail(target_thumbs[0].id);
+      for (var i = 1; i < target_thumbs.length; i++) /* Loop by target thumbnails */ {
+        var d = ca_data.get_data_detail(target_thumbs[i].id);
+        for (var j = 0; j < d.length; j++) /* Loop by group */ {
+          for (var k = 0; k < d[j].length; k++) /* Loop by node */ {
+            if (d[j][k].ends.length != 0) {
+              data[j][k].ends = data[j][k].ends.concat(d[j][k].ends);
+              data[j][k].tooltip = data[j][k].tooltip.concat(d[j][k].tooltip);
+            }
+          }
+        }
+      }
+    }
+
+    // Options
+    var wide = 400;
+    var options = {
+      w: wide,
+      h: wide,
+      rx: wide / 2,
+      ry: wide / 2,
+      rotate: 0,
+      ir: wide / 2 - 50,
+      or: wide / 2 - 30,
+      label_t: 50,
+      cluster_size: 50,
+    };
+
+    // Create a new bundle
+    bundles[ID] = new bundle(ID);
+    copy_obj(arc_style_detail, bundles[ID].arc_style);
+    for (var i = 0; i < link_style_detail.length; i++) {
+      bundles[ID].link_style.push(new bundles[ID].link_style_template());
+      copy_obj(link_style_detail[i], bundles[ID].link_style[i]);
+    }
+    bundles[ID].enable_tooltip = true;
+
+    // Draw
+    bundles[ID].draw_bundle(obj, ca_data.get_arc_data_detail(), data, options);
+
+    // Set an event listener
+    downloader.set_event_listener_for_ca_floats(obj);
+  }
+
+  function delete_overlay() {
+    delete bundles[overlay_id];
+    d3.select("#map" + overlay_idx)
+      .attr("style", null)
+      .select("svg")
+      .remove();
+    d3.select("#float" + overlay_idx + "_t").attr("style", null);
+    d3.select("#float" + overlay_idx).attr("style", null);
+  }
+
+  //
+  // Checkbox
+  //
+
+  ca_draw.checkbox_on = function () {
+    var thumb_cbs = document.getElementsByName("thumb_cb");
+    for (var i = 0; i < thumb_cbs.length; i++) {
+      if (is_thumb_visible(i)) {
+        thumb_cbs[i].checked = true;
+      }
+    }
+    ca_draw.auto_overlaying("btn_on");
+  };
+
+  ca_draw.checkbox_off = function () {
+    var thumb_cbs = document.getElementsByName("thumb_cb");
+    for (var i = 0; i < thumb_cbs.length; i++) {
+      if (is_thumb_visible(i)) {
+        thumb_cbs[i].checked = false;
+      }
+    }
+    ca_draw.auto_overlaying("btn_off");
+  };
+
+  ca_draw.checkbox_reverse = function () {
+    var thumb_cbs = document.getElementsByName("thumb_cb");
+    for (var i = 0; i < thumb_cbs.length; i++) {
+      if (is_thumb_visible(i)) {
+        thumb_cbs[i].checked = thumb_cbs[i].checked ? false : true;
+      }
+    }
+    ca_draw.auto_overlaying("btn_reverse");
+  };
+
+  function checkbox_reset() {
+    ca_draw.checkbox_on();
+  }
+
+  //
+  // Window action
+  //
+
+  ca_draw.bring_window_to_front = function (id) {
+    set_zindex(id);
+  };
+
+  ca_draw.close_overlay = function () {
+    delete_overlay();
+  };
+
+  //
+  // Utility
+  //
+
+  function check_checkboxes() {
+    // Check only the checkboxes corresponding to the highlighted thumbnails
+    if (selection_mode() === "hilight" && document.getElementById("cb_opt_highlight").checked) {
+      var thumb_cbs = document.getElementsByName("thumb_cb");
+      for (var i = 0; i < thumb_cbs.length; i++)
+        if (is_thumb_highlighted(i)) thumb_cbs[i].checked = true;
+        else thumb_cbs[i].checked = false;
+    }
+  }
+
+  function is_alive_overlay_window() {
+    return bundles[overlay_id] !== undefined;
+  }
+
+  function is_thumb_visible(i) {
+    return document.getElementById("thumb" + i + "_li").getAttribute("class") !== "thumb hidden";
+  }
+
+  function is_thumb_highlighted(i) {
+    return document.getElementById("thumb" + i).style["background-color"] !== "rgb(255, 255, 255)"; // #FFFFFF
+  }
+
+  var z_value = 1;
+  function set_zindex(id) {
+    d3.select(id).style("z-index", z_value);
+    z_value += 1;
+  }
 })();
 
 bundle_update = function () {

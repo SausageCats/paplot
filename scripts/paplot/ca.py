@@ -87,7 +87,10 @@ ca_data.select_item = [{item}];
 # Rough thumbnail
 li_template = """
 <li class="thumb" id="thumb{id}_li">
-  <strong>{title}<br /></strong>
+  <label><strong>
+    <input type="checkbox" name="thumb_cb" value="{id}" checked="checked"
+     onclick="ca_draw.auto_overlaying('cb_thumb')" /> {title}<br />
+  </strong></label>
   <div id="thumb{id}" onclick="ca_draw.show_float(event,'{id}','{title}')"></div>
 </li>
 """
@@ -97,7 +100,7 @@ call_template = 'ca_draw.draw_bandle_thumb("{id}", "{title}");\n'
 
 # Detailed thumbnail
 detail_template = """
-<div class="float_frame" id="float{id}">
+<div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
   <table>
     <tr>
       <td class="float_header" id="float{id}_t"><strong>{title}</strong></td>
@@ -121,6 +124,34 @@ detail_template = re.sub(r"\n\s+", "\n", detail_template)
 detail_template = re.sub(r"\n([<>])", "\\1", detail_template)
 detail_template = re.sub(r"\n", " ", detail_template)
 detail_template = re.sub(r" $", "\n", detail_template)
+
+overlay_template = """
+<div id="overlay" style="margin: 10px;">
+  <div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
+    <table>
+      <tr>
+        <td class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
+        <td><input type="button" value="X" onclick="ca_draw.close_overlay()" margin="0" /></td>
+      </tr>
+      <tr>
+        <td colspan="2" class="float_svg" id="map{id}"></td>
+      </tr>
+    </table>
+    <div
+      class="float_handle"
+      id="float{id}_h"
+      onmousedown="ca_draw.mouse_down(event, '#float{id}')"
+      onmousemove="ca_draw.mouse_move(event, '#float{id}')"
+      onmouseup="ca_draw.mouse_up(event, '#float{id}')"
+      onmouseout="ca_draw.mouse_out('#float{id}')"
+    ></div>
+  </div>
+</div>
+"""
+overlay_template = re.sub(r"\n\s+", "\n", overlay_template)
+overlay_template = re.sub(r"\n([<>])", "\\1", overlay_template)
+overlay_template = re.sub(r"\n", " ", overlay_template)
+overlay_template = re.sub(r" $", "\n", overlay_template)
 
 #
 # functions
@@ -622,6 +653,9 @@ def create_html(dataset, output_di, config):
 #        else:
 #            call_txt += call_template.format(id = str(i), title = dataset["id_list"][i])
 
+    # Overlay
+    overlay_txt = overlay_template.format(id=str(len(dataset["id_list"]) + 1))
+
     # Get HTML template
     f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/graph_ca.html")  # ./templates/graph_ca.html
     html_template = f_template.read()
@@ -638,6 +672,7 @@ def create_html(dataset, output_di, config):
             date=tools.now_string(),       # Cuurent time
             div_list=div_txt,              # Rough thumbnail
             details=detail_txt,            # Detailed thumbnail
+            overlay=overlay_txt,           # Overlay thumbnail
             call_list=call_txt,            # Drawing rough thumbnail
             style="../style/%s" % os.path.basename(tools.config_getpath(config, "style", "path", "default.js")),  # ./style/default.js
         ))
