@@ -86,7 +86,7 @@ ca_data.select_item = [{item}];
 
 # Rough thumbnail
 li_template = """
-<li class="thumb" id="thumb{id}_li">
+<li class="thumb" id="thumb{id}_li" style="text-overflow: ellipsis; white-space: wrap; overflow: hidden;">
   <label><strong>
     <input type="checkbox" name="thumb_cb" value="{id}" checked="checked"
      onclick="ca_draw.auto_overlaying('cb_thumb')" /> {title}<br />

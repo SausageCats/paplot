@@ -497,26 +497,26 @@
   };
 
   ca_draw.show_float = function (e, idx, ID) {
-    if (e.target.tagName != "svg") return;
-
-    draw_bandle("map" + idx, ID);
-
+    var map_id = "map" + idx;
+    var float_id = "#float" + idx;
+    var title_id = float_id + "_t";
     var pos = get_pos(idx, "thumb" + idx);
 
-    d3.select("#float" + idx + "_t")
-      .style("color", style_sv_detail.win_header_text_color)
-      .style("background-color", style_sv_detail.win_header_background_color);
+    draw_bandle(map_id, ID);
 
-    d3.select("#float" + idx)
+    d3.select(title_id).style("color", style_sv_detail.win_header_text_color);
+    highlight_window_title(title_id);
+
+    d3.select(float_id)
       .style("border-color", style_sv_detail.win_border_color)
       .style("border-width", style_sv_detail.win_border_width)
       .style("background-color", style_sv_detail.win_background_color)
       .style("left", String(pos[0]) + "px")
       .style("top", String(pos[1]) + "px")
       .style("visibility", "visible");
-
-    set_zindex("#float" + idx);
+    bring_window_to_front(float_id);
   };
+
   ca_draw.hide_float = function (id) {
     d3.select(id).style("visibility", "hidden");
   };
@@ -531,7 +531,7 @@
     mouse_y = event.pageY;
     d3.select(id).style("opacity", 0.4);
     d3.select(id + "_h").classed("float_move", true);
-    set_zindex(id);
+    bring_window_to_front(id);
   };
   ca_draw.mouse_move = function (event, id) {
     if (item != id) {
@@ -601,6 +601,9 @@
   var overlay_idx = ca_data.index_ID.length + 1;
   var overlay_id = "OVERLAY";
   while (ca_data.index_ID.indexOf(overlay_id) != -1) overlay_id += "_";
+  var old_target_thumbs;
+  var z_value = 1;
+  var hi_time = 200;
 
   //
   // Bar graph
@@ -649,52 +652,57 @@
 
   ca_draw.start_overlay = function (is_graph_event) {
     if (is_graph_event === undefined) is_graph_event = false;
-    // Change the background color of window title during overlay creation
-    d3.select("#float" + overlay_idx + "_t").style("background-color", "#0ff");
+
+    if (!is_alive_overlay_window()) {
+      start_overlay(is_graph_event, false);
+      return;
+    }
+
+    var float_id = "#float" + overlay_idx;
+    var title_id = float_id + "_t";
+    bring_window_to_front(float_id);
+    highlight_window_title(title_id, -1);
     setTimeout(function () {
-      try {
-        start_overlay(is_graph_event);
-      } finally {
-        d3.select("#float" + overlay_idx + "_t").style("background-color", style_sv_detail.win_header_background_color);
-      }
+      start_overlay(is_graph_event, true);
     }, 0);
   };
 
-  var old_target_thumbs;
-  function start_overlay(is_graph_event) {
-    // Get thumbnails to overlay
-    var target_thumbs = get_target_thumbs(is_graph_event);
+  function start_overlay(is_graph_event, is_highlighted) {
+    var float_id = "#float" + overlay_idx;
+    var title_id = float_id + "_t";
 
     // Stop if drawing the same as the previous one
+    var target_thumbs = get_target_thumbs(is_graph_event);
     if (
       is_alive_overlay_window() && //
       JSON.stringify(target_thumbs) === JSON.stringify(old_target_thumbs)
-    )
+    ) {
+      highlight_window_title(title_id);
       return;
+    }
     old_target_thumbs = target_thumbs;
 
-    var idx = overlay_idx;
-    var pos = get_pos(idx, "overlay_pos"); // NOTE: Get position before drawing
+    // NOTE: Get position before drawing
+    var pos = get_pos(overlay_idx, "overlay_pos");
+    var start_time = Date.now();
 
     // Draw
     draw_overlay(target_thumbs);
 
-    // Set window title colors
-    d3.select("#float" + idx + "_t")
-      .style("color", style_sv_detail.win_header_text_color)
-      .style("background-color", style_sv_detail.win_header_background_color);
+    // Set window title
+    d3.select(title_id).style("color", style_sv_detail.win_header_text_color);
+    var delay = is_highlighted && Date.now() - start_time > hi_time ? 0 : hi_time;
+    highlight_window_title(title_id, delay);
 
-    // Set window style
-    d3.select("#float" + idx)
+    // Set other options for window
+    d3.select(float_id)
       .style("border-color", style_sv_detail.win_border_color)
       .style("border-width", style_sv_detail.win_border_width)
       .style("background-color", style_sv_detail.win_background_color)
       .style("left", String(pos[0]) + "px")
       .style("top", String(pos[1]) + "px")
       .style("visibility", "visible");
-
-    // Set zindex
-    set_zindex("#float" + idx);
+    bring_window_to_front(float_id);
   }
 
   function get_target_thumbs(is_graph_event) {
@@ -832,7 +840,7 @@
   //
 
   ca_draw.bring_window_to_front = function (id) {
-    set_zindex(id);
+    bring_window_to_front(id);
   };
 
   ca_draw.close_overlay = function () {
@@ -842,6 +850,11 @@
   //
   // Utility
   //
+
+  function bring_window_to_front(id) {
+    d3.select(id).style("z-index", z_value);
+    z_value += 1;
+  }
 
   function check_checkboxes() {
     // Check only the checkboxes corresponding to the highlighted thumbnails
@@ -865,10 +878,15 @@
     return document.getElementById("thumb" + i).style["background-color"] !== "rgb(255, 255, 255)"; // #FFFFFF
   }
 
-  var z_value = 1;
-  function set_zindex(id) {
-    d3.select(id).style("z-index", z_value);
-    z_value += 1;
+  function highlight_window_title(id, millisec = hi_time) {
+    // Highlight the background color of window title
+    d3.select(id).style("background-color", "#0ff");
+    if (millisec >= 0) {
+      setTimeout(function () {
+        // Restore the background color of window title to its original color
+        d3.select(id).style("background-color", style_sv_detail.win_header_background_color);
+      }, millisec);
+    }
   }
 })();
 
