@@ -654,7 +654,7 @@ def create_html(dataset, output_di, config):
 #            call_txt += call_template.format(id = str(i), title = dataset["id_list"][i])
 
     # Overlay
-    overlay_txt = overlay_template.format(id=str(len(dataset["id_list"]) + 1))
+    overlay_txt = overlay_template.format(id=str(len(dataset["id_list"])))
 
     # Get HTML template
     f_template = open(os.path.dirname(os.path.abspath(__file__)) + "/templates/graph_ca.html")  # ./templates/graph_ca.html

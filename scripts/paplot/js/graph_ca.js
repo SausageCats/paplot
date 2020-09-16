@@ -521,9 +521,18 @@
     d3.select(id).style("visibility", "hidden");
   };
 
+  ca_draw.resize_if = function () {
+    div_select_bar.resize();
+  };
+
+  // -----------------------------------------------------------------------------
+  // Mouse
+  // -----------------------------------------------------------------------------
+
   var item = "";
   var mouse_x = 0;
   var mouse_y = 0;
+  var cirplots;
 
   ca_draw.mouse_down = function (event, id) {
     item = id;
@@ -532,7 +541,11 @@
     d3.select(id).style("opacity", 0.4);
     d3.select(id + "_h").classed("float_move", true);
     bring_window_to_front(id);
+    if (d3.select("#cb_opt_cirplots")[0][0].checked) {
+      hide_cirplots(id.replace("#float", ""));
+    }
   };
+
   ca_draw.mouse_move = function (event, id) {
     if (item != id) {
       return;
@@ -544,10 +557,10 @@
     }
     d3.select(id).style("left", String(pos_tonum(d3.select(id).style("left")) - dist_x) + "px");
     d3.select(id).style("top", String(pos_tonum(d3.select(id).style("top")) - dist_y) + "px");
-
     mouse_x = event.pageX;
     mouse_y = event.pageY;
   };
+
   ca_draw.mouse_up = function (event, id) {
     if (item != id) {
       return;
@@ -557,6 +570,9 @@
     mouse_y = 0;
     d3.select(id).style("opacity", 1.0);
     d3.select(id + "_h").classed("float_move", false);
+    if (d3.select("#cb_opt_cirplots")[0][0].checked) {
+      visible_cirplots();
+    }
   };
 
   ca_draw.mouse_out = function (id) {
@@ -568,37 +584,44 @@
     mouse_y = 0;
     d3.select(id).style("opacity", 1.0);
     d3.select(id + "_h").classed("float_move", false);
+    if (d3.select("#cb_opt_cirplots")[0][0].checked) {
+      visible_cirplots();
+    }
   };
 
   function pos_tonum(pos_txt) {
     return Number(pos_txt.replace(/px/g, ""));
   }
 
-  function get_pos(idx, id) {
-    // Return the current position if the specified float window exists
-    var style = d3.select("#float" + idx)[0][0].style;
-    if (style.visibility === "visible") {
-      return [style.left.replace("px", ""), style.top.replace("px", "")];
+  function hide_cirplots(target_idx) {
+    var map_id;
+    cirplots = [];
+    for (var i = 0; i < overlay_idx + 1; i++) {
+      map_id = "#map" + i;
+      if (d3.select(map_id)[0][0].style["visibility"] === "visible") {
+        if (i == target_idx) {
+          cirplots.push([map_id, d3.select(map_id).html()]);
+          d3.select(map_id).select("svg").remove();
+        } else {
+          cirplots.push([map_id, ""]);
+          d3.select(map_id).style("visibility", "hidden");
+        }
+      }
     }
-
-    // Return a predetermined position
-    var rect = document.getElementById(id).getBoundingClientRect();
-    var dElm = document.documentElement;
-    var dBody = document.body;
-    var scrollX = dElm.scrollLeft || dBody.scrollLeft;
-    var scrollY = dElm.scrollTop || dBody.scrollTop;
-    return [rect.left + scrollX, rect.top + scrollY];
   }
 
-  ca_draw.resize_if = function () {
-    div_select_bar.resize();
-  };
+  function visible_cirplots() {
+    for (var i = 0; i < cirplots.length; i++) {
+      if (cirplots[i][1] === "") d3.select(cirplots[i][0]).style("visibility", "visible");
+      else d3.select(cirplots[i][0]).html(cirplots[i][1]);
+    }
+  }
 
   // -----------------------------------------------------------------------------
   // Overlay
   // -----------------------------------------------------------------------------
 
-  var overlay_idx = ca_data.index_ID.length + 1;
+  var overlay_idx = ca_data.index_ID.length;
   var overlay_id = "OVERLAY";
   while (ca_data.index_ID.indexOf(overlay_id) != -1) overlay_id += "_";
   var old_target_thumbs;
@@ -866,16 +889,20 @@
     }
   }
 
-  function is_alive_overlay_window() {
-    return bundles[overlay_id] !== undefined;
-  }
+  function get_pos(idx, id) {
+    // Return the current position if the specified float window exists
+    var style = d3.select("#float" + idx)[0][0].style;
+    if (style.visibility === "visible") {
+      return [style.left.replace("px", ""), style.top.replace("px", "")];
+    }
 
-  function is_thumb_visible(i) {
-    return document.getElementById("thumb" + i + "_li").getAttribute("class") !== "thumb hidden";
-  }
-
-  function is_thumb_highlighted(i) {
-    return document.getElementById("thumb" + i).style["background-color"] !== "rgb(255, 255, 255)"; // #FFFFFF
+    // Return a predetermined position
+    var rect = document.getElementById(id).getBoundingClientRect();
+    var dElm = document.documentElement;
+    var dBody = document.body;
+    var scrollX = dElm.scrollLeft || dBody.scrollLeft;
+    var scrollY = dElm.scrollTop || dBody.scrollTop;
+    return [rect.left + scrollX, rect.top + scrollY];
   }
 
   function highlight_window_title(id, millisec = hi_time) {
@@ -887,6 +914,18 @@
         d3.select(id).style("background-color", style_sv_detail.win_header_background_color);
       }, millisec);
     }
+  }
+
+  function is_alive_overlay_window() {
+    return bundles[overlay_id] !== undefined;
+  }
+
+  function is_thumb_visible(i) {
+    return document.getElementById("thumb" + i + "_li").getAttribute("class") !== "thumb hidden";
+  }
+
+  function is_thumb_highlighted(i) {
+    return document.getElementById("thumb" + i).style["background-color"] !== "rgb(255, 255, 255)"; // #FFFFFF
   }
 })();
 
