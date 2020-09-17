@@ -109,8 +109,7 @@ bundle = (function () {
       .select("#" + obj)
       .style("width", options.w + "px")
       .style("height", options.h + "px")
-      .style("position", "absolute")
-      .style("visibility", "visible");
+      .style("position", "absolute");
 
     var svg = div
       .append("svg:svg")

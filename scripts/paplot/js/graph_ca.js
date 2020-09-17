@@ -532,7 +532,7 @@
   var item = "";
   var mouse_x = 0;
   var mouse_y = 0;
-  var cirplots;
+  var cirplots = [];
 
   ca_draw.mouse_down = function (event, id) {
     item = id;
@@ -594,11 +594,11 @@
   }
 
   function hide_cirplots(target_idx) {
+    if (cirplots.length > 0) return;
     var map_id;
-    cirplots = [];
     for (var i = 0; i < overlay_idx + 1; i++) {
-      map_id = "#map" + i;
-      if (d3.select(map_id)[0][0].style["visibility"] === "visible") {
+      if (d3.select("#float" + i)[0][0].style["visibility"] === "visible") {
+        map_id = "#map" + i;
         if (i == target_idx) {
           cirplots.push([map_id, d3.select(map_id).html()]);
           d3.select(map_id).select("svg").remove();
@@ -612,9 +612,10 @@
 
   function visible_cirplots() {
     for (var i = 0; i < cirplots.length; i++) {
-      if (cirplots[i][1] === "") d3.select(cirplots[i][0]).style("visibility", "visible");
+      if (cirplots[i][1] === "") d3.select(cirplots[i][0]).style("visibility", null);
       else d3.select(cirplots[i][0]).html(cirplots[i][1]);
     }
+    cirplots.length = 0;
   }
 
   // -----------------------------------------------------------------------------
