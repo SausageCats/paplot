@@ -872,6 +872,48 @@
   };
 
   //
+  // Modal window
+  //
+
+  ca_draw.open_modal = function (float_id) {
+    var modal = document.getElementById("modal_window");
+    var modal_id = "#modal_float";
+
+    modal.style.display = "block";
+    d3.select(modal_id)
+      .style("border-color", "black")
+      .style("border-width", "3px")
+      .style("left", window.event.pageX + "px")
+      .style("top", window.event.pageY + "px")
+      .style("visibility", "visible")
+      .style("z-index", z_value + 2);
+
+    function close() {
+      modal.style.display = "none";
+      d3.select(modal_id).style("visibility", "hidden");
+      window.onclick = null;
+      window.oncontextmenu = null;
+      window.onmousemove = null;
+    }
+
+    window.onclick = function (e) {
+      if (e.target == modal) {
+        d3.select(float_id).style("left", e.pageX).style("top", e.pageY);
+        close();
+      }
+    };
+
+    window.oncontextmenu = function () {
+      close();
+      return false;
+    };
+
+    window.onmousemove = function (e) {
+      d3.select(modal_id).style("left", e.pageX).style("top", e.pageY);
+    };
+  };
+
+  //
   // Utility
   //
 

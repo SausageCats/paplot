@@ -1,5 +1,9 @@
 @charset "utf-8";
 
+/**
+ * Buttons
+ */
+
 input[id^="btn_"] {
   position: relative;
   text-align: center;
@@ -19,4 +23,23 @@ input[id^="btn_"]:hover {
 input[id^="btn_"]:active {
   top: 2.5px;
   box-shadow: none;
+}
+
+
+/**
+ * Modal window
+ */
+
+#modal_window {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 2147483647;
+  animation-name: show;
+  animation-duration: 0.1s
 }
