@@ -18,7 +18,7 @@ input[id^="btn_"] {
 }
 
 input[id^="btn_"]:hover {
-  opacity: 0.7
+  opacity: 0.7;
 }
 input[id^="btn_"]:active {
   top: 2.5px;
@@ -41,5 +41,19 @@ input[id^="btn_"]:active {
   background: rgba(0, 0, 0, 0.3);
   z-index: 2147483647;
   animation-name: show;
-  animation-duration: 0.1s
+  animation-duration: 0.1s;
+}
+
+
+/**
+ * Float window
+ */
+
+.float_header {
+  word-break: break-all;
+}
+
+.float_close:hover {
+  background-color: #ff8787;
+  border-color: #a64b4b;
 }

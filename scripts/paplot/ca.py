@@ -103,9 +103,13 @@ detail_template = """
 <div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
   <table>
     <tr>
-      <td class="float_header" id="float{id}_t"><strong>{title}</strong></td>
-      <td><input type="button" value="#" onclick="ca_draw.open_modal(float{id})" margin="0" /></td>
-      <td><input type="button" value="X" onclick="ca_draw.hide_float('#float{id}')" margin="0" /></td>
+      <tr>
+        <td rowspan="2" class="float_header" id="float{id}_t"><strong>{title}</strong></td>
+        <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('#float{id}')" margin="0" /></td>
+      </tr>
+      <tr>
+        <td><input type="button" value="#" onclick="ca_draw.open_modal(float{id})" margin="0" /></td>
+      </tr>
     </tr>
     <tr>
       <td colspan="2" class="float_svg" id="map{id}"></td>
@@ -128,26 +132,30 @@ detail_template = re.sub(r" $", "\n", detail_template)
 
 overlay_template = """
 <div id="overlay" style="margin: 10px;">
-  <div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
-    <table>
+<div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
+  <table>
+    <tr>
       <tr>
-        <td class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
+        <td rowspan="2" class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
+        <td><input type="button" value="X" class="float_close" onclick="ca_draw.close_overlay()" margin="0" /></td>
+      </tr>
+      <tr>
         <td><input type="button" value="#" onclick="ca_draw.open_modal(float{id})" margin="0" /></td>
-        <td><input type="button" value="X" onclick="ca_draw.close_overlay()" margin="0" /></td>
       </tr>
-      <tr>
-        <td colspan="2" class="float_svg" id="map{id}"></td>
-      </tr>
-    </table>
-    <div
-      class="float_handle"
-      id="float{id}_h"
-      onmousedown="ca_draw.mouse_down(event, '#float{id}')"
-      onmousemove="ca_draw.mouse_move(event, '#float{id}')"
-      onmouseup="ca_draw.mouse_up(event, '#float{id}')"
-      onmouseout="ca_draw.mouse_out('#float{id}')"
-    ></div>
-  </div>
+    </tr>
+    <tr>
+      <td colspan="2" class="float_svg" id="map{id}"></td>
+    </tr>
+  </table>
+  <div
+    class="float_handle"
+    id="float{id}_h"
+    onmousedown="ca_draw.mouse_down(event, '#float{id}')"
+    onmousemove="ca_draw.mouse_move(event, '#float{id}')"
+    onmouseup="ca_draw.mouse_up(event, '#float{id}')"
+    onmouseout="ca_draw.mouse_out('#float{id}')"
+  ></div>
+</div>
 </div>
 """
 overlay_template = re.sub(r"\n\s+", "\n", overlay_template)
