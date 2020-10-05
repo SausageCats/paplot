@@ -104,11 +104,8 @@ detail_template = """
   <table>
     <tr>
       <tr>
-        <td rowspan="2" class="float_header" id="float{id}_t"><strong>{title}</strong></td>
+        <td class="float_header" id="float{id}_t"><strong>{title}</strong></td>
         <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('#float{id}')" margin="0" /></td>
-      </tr>
-      <tr>
-        <td><input type="button" value="#" onclick="ca_draw.open_modal(float{id})" margin="0" /></td>
       </tr>
     </tr>
     <tr>
@@ -136,11 +133,8 @@ overlay_template = """
   <table>
     <tr>
       <tr>
-        <td rowspan="2" class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
+        <td class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
         <td><input type="button" value="X" class="float_close" onclick="ca_draw.close_overlay()" margin="0" /></td>
-      </tr>
-      <tr>
-        <td><input type="button" value="#" onclick="ca_draw.open_modal(float{id})" margin="0" /></td>
       </tr>
     </tr>
     <tr>

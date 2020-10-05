@@ -27,25 +27,6 @@ input[id^="btn_"]:active {
 
 
 /**
- * Modal window
- */
-
-#modal_window {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  overflow: auto;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: 2147483647;
-  animation-name: show;
-  animation-duration: 0.1s;
-}
-
-
-/**
  * Float window
  */
 

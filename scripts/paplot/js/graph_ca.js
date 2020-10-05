@@ -533,7 +533,6 @@
   var item = "";
   var mouse_x = 0;
   var mouse_y = 0;
-  var cirplots = [];
   var header_region = [];
 
   ca_draw.mouse_down = function (event, id) {
@@ -543,9 +542,6 @@
     d3.select(id).style("opacity", 0.4);
     expand_header_region(id.replace("#float", ""));
     bring_window_to_front(id);
-    if (d3.select("#cb_opt_cirplots")[0][0].checked) {
-      hide_cirplots(id.replace("#float", ""));
-    }
   };
 
   ca_draw.mouse_move = function (event, id) {
@@ -576,9 +572,6 @@
     mouse_y = 0;
     d3.select(id).style("opacity", 1.0);
     restore_header_region();
-    if (d3.select("#cb_opt_cirplots")[0][0].checked) {
-      visible_cirplots();
-    }
   };
 
   function pos_tonum(pos_txt) {
@@ -605,31 +598,6 @@
     d3.select(header_region[0]).style("left", header_region[4]);
     d3.select(header_region[0]).style("width", header_region[5]);
     header_region.length = 0;
-  }
-
-  function hide_cirplots(target_idx) {
-    if (cirplots.length > 0) return;
-    var map_id;
-    for (var i = 0; i < overlay_idx + 1; i++) {
-      if (d3.select("#float" + i)[0][0].style["visibility"] === "visible") {
-        map_id = "#map" + i;
-        if (i == target_idx) {
-          cirplots.push([map_id, d3.select(map_id).html()]);
-          d3.select(map_id).select("svg").remove();
-        } else {
-          cirplots.push([map_id, ""]);
-          d3.select(map_id).style("visibility", "hidden");
-        }
-      }
-    }
-  }
-
-  function visible_cirplots() {
-    for (var i = 0; i < cirplots.length; i++) {
-      if (cirplots[i][1] === "") d3.select(cirplots[i][0]).style("visibility", null);
-      else d3.select(cirplots[i][0]).html(cirplots[i][1]);
-    }
-    cirplots.length = 0;
   }
 
   // -----------------------------------------------------------------------------
@@ -884,48 +852,6 @@
 
   ca_draw.close_overlay = function () {
     delete_overlay();
-  };
-
-  //
-  // Modal window
-  //
-
-  ca_draw.open_modal = function (float_id) {
-    var modal = document.getElementById("modal_window");
-    var modal_id = "#modal_float";
-
-    modal.style.display = "block";
-    d3.select(modal_id)
-      .style("border-color", "black")
-      .style("border-width", "3px")
-      .style("left", window.event.pageX + "px")
-      .style("top", window.event.pageY + "px")
-      .style("visibility", "visible")
-      .style("z-index", z_value + 2);
-
-    function close() {
-      modal.style.display = "none";
-      d3.select(modal_id).style("visibility", "hidden");
-      window.onclick = null;
-      window.oncontextmenu = null;
-      window.onmousemove = null;
-    }
-
-    window.onclick = function (e) {
-      if (e.target == modal) {
-        d3.select(float_id).style("left", e.pageX).style("top", e.pageY);
-        close();
-      }
-    };
-
-    window.oncontextmenu = function () {
-      close();
-      return false;
-    };
-
-    window.onmousemove = function (e) {
-      d3.select(modal_id).style("left", e.pageX).style("top", e.pageY);
-    };
   };
 
   //
