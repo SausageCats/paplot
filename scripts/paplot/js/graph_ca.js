@@ -583,20 +583,22 @@
     var handle_id = "#float" + idx + "_h.float_handle";
     var fh = d3.select(handle_id);
     header_region = [handle_id, fh.style("position"), fh.style("top"), fh.style("height"), fh.style("left"), fh.style("width")];
-    d3.select(handle_id).style("position", "fixed");
-    d3.select(handle_id).style("top", "0px");
-    d3.select(handle_id).style("height", document.body.clientHeight);
-    d3.select(handle_id).style("left", "0px");
-    d3.select(handle_id).style("width", document.body.clientWidth);
+    d3.select(handle_id)
+      .style("position", "fixed")
+      .style("top", "0px")
+      .style("height", document.body.clientHeight)
+      .style("left", "0px")
+      .style("width", document.body.clientWidth);
   }
 
   function restore_header_region() {
     if (header_region.length == 0) return;
-    d3.select(header_region[0]).style("position", header_region[1]);
-    d3.select(header_region[0]).style("top", header_region[2]);
-    d3.select(header_region[0]).style("height", header_region[3]);
-    d3.select(header_region[0]).style("left", header_region[4]);
-    d3.select(header_region[0]).style("width", header_region[5]);
+    d3.select(header_region[0])
+      .style("position", header_region[1])
+      .style("top", header_region[2])
+      .style("height", header_region[3])
+      .style("left", header_region[4])
+      .style("width", header_region[5]);
     header_region.length = 0;
   }
 

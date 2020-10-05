@@ -34,6 +34,12 @@ input[id^="btn_"]:active {
   word-break: break-all;
 }
 
+.float_close {
+    position: relative;
+    width: 30px;
+    margin: 0px 10px;
+}
+
 .float_close:hover {
   background-color: #ff8787;
   border-color: #a64b4b;
