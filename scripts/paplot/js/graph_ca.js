@@ -612,6 +612,7 @@
   var old_target_thumbs;
   var z_value = 1;
   var hi_time = 200;
+  var saved_bp_nodes;
 
   //
   // Bar graph
@@ -749,19 +750,34 @@
     // Delete
     if (bundles[ID] !== undefined) delete_overlay();
 
-    // Gather target data
-    var data;
-    if (target_thumbs.length != 0) {
-      data = ca_data.get_data_detail(target_thumbs[0].id);
-      for (var i = 1; i < target_thumbs.length; i++) /* Loop by target thumbnails */ {
-        var d = ca_data.get_data_detail(target_thumbs[i].id);
+    // Save breakpoint information
+    if (saved_bp_nodes === undefined) {
+      saved_bp_nodes = {};
+      for (var i = 0; i < ca_data.index_ID.length; i++) {
+        var id = ca_data.index_ID[i];
+        var d = ca_data.get_data_detail(id);
+        saved_bp_nodes[id] = [];
         for (var j = 0; j < d.length; j++) /* Loop by group */ {
           for (var k = 0; k < d[j].length; k++) /* Loop by node */ {
             if (d[j][k].ends.length != 0) {
-              data[j][k].ends = data[j][k].ends.concat(d[j][k].ends);
-              data[j][k].tooltip = data[j][k].tooltip.concat(d[j][k].tooltip);
+              saved_bp_nodes[id].push([j, k, d[j][k].ends, d[j][k].tooltip]);
             }
           }
+        }
+      }
+    }
+
+    // Gather target data
+    var data;
+    if (target_thumbs.length != 0) {
+      data = ca_data.get_data_detail("");
+      for (var i = 0; i < target_thumbs.length; i++) {
+        var id = target_thumbs[i].id;
+        for (var j = 0; j < saved_bp_nodes[id].length; j++) {
+          var group = saved_bp_nodes[id][j][0];
+          var index = saved_bp_nodes[id][j][1];
+          Array.prototype.push.apply(data[group][index].ends, saved_bp_nodes[id][j][2]);
+          Array.prototype.push.apply(data[group][index].tooltip, saved_bp_nodes[id][j][3]);
         }
       }
     }

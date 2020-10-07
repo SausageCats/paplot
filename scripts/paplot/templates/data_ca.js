@@ -35,6 +35,7 @@ var create_blank_nodes = function (node_size, leveling) {
 };
 
 function tooltip_partial(format, link) {
+  // link: 0:ID, 1:chr1, 2:break1, 3:chr2, 4:break2, 5:is_inner, 6:group_id, 7:tooltip_data
   var obj = {
     id: link[0],
     chr1: ca_data.genome_size[Number(link[1])].label,
@@ -91,6 +92,8 @@ function text_format(format, obj) {
   return text;
 }
 
+// Return each_dataset: two-dimensional array
+// each_dataset[group][nodes] = {start: "...", ends: ["..."], tooltip: [["..."]]}
 var create_bundle_dataset = function (ID, node_size, tooltip) {
   var i = 0;
   var each_dataset = [];
@@ -98,7 +101,9 @@ var create_bundle_dataset = function (ID, node_size, tooltip) {
     each_dataset[i] = create_blank_nodes(node_size);
   }
 
+  // Update "ends" and "tooltip" in each_dataset
   for (i = 0; i < ca_data.links.length; i++) {
+    // ca_data.links[i]: 0:ID, 1:chr1, 2:break1, 3:chr2, 4:break2, 5:is_inner, 6:group_id, 7:tooltip_data
     if (ca_data.links[i][0] != ID) {
       continue;
     }
@@ -126,10 +131,11 @@ var create_bundle_dataset = function (ID, node_size, tooltip) {
     }
 
     var group = ca_data.links[i][6];
-    each_dataset[group][index].ends.push(end);
+    each_dataset[group][index].ends.push(end); // end: String
 
     // tooltip
     if (tooltip == true) {
+      // tooltip_partial(...): Array
       each_dataset[group][index].tooltip.push(tooltip_partial(ca_data.tooltip_format.bundle, ca_data.links[i]));
     }
   }
