@@ -84,17 +84,28 @@ ca_data.select_item = [{item}];
 # HTML template
 #
 
+def to_mintext(text):
+    text = re.sub(r"\n\s+", "\n", text)
+    text = re.sub(r"\n([<>])", "\\1", text)
+    text = re.sub(r"\n", " ", text)
+    text = re.sub(r" $", "\n", text)
+    return text
+
 # Rough thumbnail
 li_template = """
-<li class="thumb" id="thumb{id}_li" style="text-overflow: ellipsis; white-space: wrap; overflow: hidden;">
-  <label><strong>
-    <input type="checkbox" name="thumb_cb" value="{id}" checked="checked"
-     onclick="ca_draw.auto_overlaying('cb_thumb')" /> {title}<br />
-  </strong></label>
-  <div id="thumb{id}" onclick="ca_draw.show_float(event,'{id}','{title}')"></div>
+<li class="thumb" id="thumb{id}_li">
+  <div class="thumb_head" id="thumb{id}_head">
+    <label><input type="checkbox" name="thumb_cb" value="{id}" checked="checked"
+            onclick="ca_draw.auto_overlaying('cb_thumb')" />
+    <span class="thumb_title"
+     onmouseover="ca_draw.thumb_title_mouseover('#thumb{id}_head')"
+     onmouseout="ca_draw.thumb_title_mouseout('#thumb{id}_head')"
+    ><strong>{title}</strong></span></label>
+  </div>
+  <div class="thumb_circos" id="thumb{id}" onclick="ca_draw.show_float(event,'{id}','{title}')"></div>
 </li>
 """
-li_template = re.sub(r"\n\s*", "", li_template) + "\n"
+li_template = to_mintext(li_template)
 
 call_template = 'ca_draw.draw_bandle_thumb("{id}", "{title}");\n'
 
@@ -122,10 +133,7 @@ detail_template = """
   ></div>
 </div>
 """
-detail_template = re.sub(r"\n\s+", "\n", detail_template)
-detail_template = re.sub(r"\n([<>])", "\\1", detail_template)
-detail_template = re.sub(r"\n", " ", detail_template)
-detail_template = re.sub(r" $", "\n", detail_template)
+detail_template = to_mintext(detail_template)
 
 overlay_template = """
 <div id="overlay" style="margin: 10px;">
@@ -152,10 +160,8 @@ overlay_template = """
 </div>
 </div>
 """
-overlay_template = re.sub(r"\n\s+", "\n", overlay_template)
-overlay_template = re.sub(r"\n([<>])", "\\1", overlay_template)
-overlay_template = re.sub(r"\n", " ", overlay_template)
-overlay_template = re.sub(r" $", "\n", overlay_template)
+overlay_template = to_mintext(overlay_template)
+
 
 #
 # functions

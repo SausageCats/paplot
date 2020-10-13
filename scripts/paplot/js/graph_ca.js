@@ -861,6 +861,34 @@
   }
 
   //
+  // Thumbnail titles
+  //
+
+  ca_draw.thumb_title_mouseover = function (thumbli_id) {
+    if (document.getElementById("cb_opt_title").checked)
+      d3.select(thumbli_id)
+        .style("overflow", "visible")
+        .style("text-overflow", "clip")
+        .style("white-space", "normal")
+        .style("word-break", "break-all")
+        .style("background-color", "#f2eded")
+        .style("margin", "-3px 0px 0px -3px")
+        .style("padding", "3px 3px 3px 3px");
+  };
+
+  ca_draw.thumb_title_mouseout = function (thumbli_id) {
+    if (document.getElementById("cb_opt_title").checked)
+      d3.select(thumbli_id)
+        .style("overflow", "hidden")
+        .style("text-overflow", "ellipsis")
+        .style("white-space", "nowrap")
+        .style("word-break", "normal")
+        .style("background-color", "white")
+        .style("margin", "0px")
+        .style("padding", "0px");
+  };
+
+  //
   // Window action
   //
 
