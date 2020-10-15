@@ -42,9 +42,19 @@
             </label>
           </div>
           <div>
-            <input type="checkbox" id="cb_opt_title" />
+            <input type="checkbox" id="cb_opt_title" checked />
             <label for="cb_opt_title">
-              Display the full title of circosplot on mouse hover
+              Display full title after
+              <select id="title_timeout_interval">
+                <option value="0.0" selected>0.0</option>
+                <option value="0.5">0.5</option>
+                <option value="1.0">1.0</option>
+                <option value="1.5">1.5</option>
+                <option value="2.0">2.0</option>
+                <option value="2.5">2.5</option>
+                <option value="3.0">3.0</option>
+              </select>
+              second with mouse pointer over circosplot title
             </label>
           </div>
         </div>

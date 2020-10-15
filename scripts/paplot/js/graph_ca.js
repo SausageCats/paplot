@@ -613,6 +613,7 @@
   var z_value = 1;
   var hi_time = 200;
   var saved_bp_nodes;
+  var title_timeout_id;
 
   //
   // Bar graph
@@ -863,17 +864,22 @@
   //
   // Thumbnail titles
   //
-
   ca_draw.thumb_title_mouseover = function (thumbli_id) {
-    if (document.getElementById("cb_opt_title").checked)
-      d3.select(thumbli_id)
-        .style("overflow", "visible")
-        .style("text-overflow", "clip")
-        .style("white-space", "normal")
-        .style("word-break", "break-all")
-        .style("background-color", "#f2eded")
-        .style("margin", "-3px 0px 0px -3px")
-        .style("padding", "3px 3px 3px 3px");
+    if (document.getElementById("cb_opt_title").checked) {
+      if (title_timeout_id === undefined) {
+        var delay = parseInt(d3.select("#title_timeout_interval")[0][0].value * 1000);
+        title_timeout_id = setTimeout(function () {
+          d3.select(thumbli_id)
+            .style("overflow", "visible")
+            .style("text-overflow", "clip")
+            .style("white-space", "normal")
+            .style("word-break", "break-all")
+            .style("background-color", "#f2eded")
+            .style("margin", "-3px 0px 0px -3px")
+            .style("padding", "3px 3px 3px 3px");
+        }, delay);
+      }
+    }
   };
 
   ca_draw.thumb_title_mouseout = function (thumbli_id) {
@@ -886,6 +892,10 @@
         .style("background-color", "white")
         .style("margin", "0px")
         .style("padding", "0px");
+    if (title_timeout_id !== undefined) {
+      clearTimeout(title_timeout_id);
+      title_timeout_id = undefined;
+    }
   };
 
   //
