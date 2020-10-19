@@ -425,10 +425,9 @@
 
   var bundles = {};
 
-  function draw_bandle(obj, ID) {
+  function draw_bandle(obj, ID, wide) {
     if (bundles[ID] != undefined) return;
 
-    var wide = 400;
     var options = {
       w: wide,
       h: wide,
@@ -500,23 +499,37 @@
     var map_id = "map" + idx;
     var float_id = "#float" + idx;
     var title_id = float_id + "_t";
-    var pos = get_pos(idx, "thumb" + idx);
+    var circos_size = 400;
+    var pos = get_pos(idx, "thumb" + idx); // NOTE: Get position before drawing
 
-    draw_bandle(map_id, ID);
+    draw_bandle(map_id, ID, circos_size);
 
-    d3.select(title_id).style("color", style_sv_detail.win_header_text_color);
+    set_style(idx, circos_size, pos);
     highlight_window_title(title_id);
-    set_header_region(idx);
+    bring_window_to_front(float_id);
+  };
 
+  function set_style(idx, circos_size, pos) {
+    var float_id = "#float" + idx;
+    var title_id = float_id + "_t";
+    var header_id = float_id + "_h";
+    var header_height = document.getElementById("float" + idx + "_t").clientHeight;
+    var circos_height = header_height + circos_size;
+
+    // header region
+    d3.select(title_id).style("color", style_sv_detail.win_header_text_color);
+    d3.select(header_id).style("top", -header_height).style("height", header_height);
+
+    // circosplot region
     d3.select(float_id)
       .style("border-color", style_sv_detail.win_border_color)
       .style("border-width", style_sv_detail.win_border_width)
       .style("background-color", style_sv_detail.win_background_color)
       .style("left", String(pos[0]) + "px")
       .style("top", String(pos[1]) + "px")
+      .style("height", circos_height)
       .style("visibility", "visible");
-    bring_window_to_front(float_id);
-  };
+  }
 
   ca_draw.hide_float = function (id) {
     d3.select(id).style("visibility", "hidden");
@@ -680,6 +693,7 @@
   function start_overlay(is_graph_event, is_highlighted) {
     var float_id = "#float" + overlay_idx;
     var title_id = float_id + "_t";
+    var circos_size = 400;
 
     // Stop if drawing the same as the previous one
     var target_thumbs = get_target_thumbs(is_graph_event);
@@ -692,27 +706,16 @@
     }
     old_target_thumbs = target_thumbs;
 
-    // NOTE: Get position before drawing
-    var pos = get_pos(overlay_idx, "overlay_pos");
-    var start_time = Date.now();
+    var pos = get_pos(overlay_idx, "overlay_pos"); // NOTE: Get position before drawing
 
     // Draw
-    draw_overlay(target_thumbs);
-
-    // Set window title
-    d3.select(title_id).style("color", style_sv_detail.win_header_text_color);
+    var start_time = Date.now();
+    draw_overlay(target_thumbs, circos_size);
     var delay = is_highlighted && Date.now() - start_time > hi_time ? 0 : hi_time;
-    highlight_window_title(title_id, delay);
-    set_header_region(overlay_idx);
 
-    // Set other options for window
-    d3.select(float_id)
-      .style("border-color", style_sv_detail.win_border_color)
-      .style("border-width", style_sv_detail.win_border_width)
-      .style("background-color", style_sv_detail.win_background_color)
-      .style("left", String(pos[0]) + "px")
-      .style("top", String(pos[1]) + "px")
-      .style("visibility", "visible");
+    // Window
+    set_style(overlay_idx, circos_size, pos);
+    highlight_window_title(title_id, delay);
     bring_window_to_front(float_id);
   }
 
@@ -744,7 +747,7 @@
   }
 
   // Gather and draw data for overlay
-  function draw_overlay(target_thumbs) {
+  function draw_overlay(target_thumbs, wide) {
     var obj = "map" + overlay_idx;
     var ID = overlay_id;
 
@@ -784,7 +787,6 @@
     }
 
     // Options
-    var wide = 400;
     var options = {
       w: wide,
       h: wide,
@@ -966,12 +968,6 @@
 
   function is_thumb_highlighted(i) {
     return document.getElementById("thumb" + i).style["background-color"] !== "rgb(255, 255, 255)"; // #FFFFFF
-  }
-
-  function set_header_region(idx) {
-    var height = document.getElementById("float" + idx + "_t").clientHeight;
-    d3.select("#float" + idx + "_h").style("top", -height);
-    d3.select("#float" + idx + "_h").style("height", height);
   }
 })();
 
