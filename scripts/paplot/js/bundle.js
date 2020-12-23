@@ -5,8 +5,8 @@
       var map = {};
 
       function find(start, data) {
-        var node = map[start],
-          i;
+        var node = map[start];
+        var i;
         if (!node) {
           node = map[start] = data || {
             start: start,
@@ -29,9 +29,9 @@
     },
 
     // Return a list of ends for the given array of nodes.
-    ends: function (nodes) {
-      var map = {},
-        ends = [];
+    ends: function (nodes, include_idx) {
+      var map = {};
+      var ends = [];
 
       // Compute a map from start to node.
       nodes.forEach(function (d) {
@@ -39,16 +39,30 @@
       });
 
       // For each import, construct a link from the source to target node.
-      nodes.forEach(function (d) {
-        if (d.ends) {
-          d.ends.forEach(function (i) {
-            ends.push({
-              source: map[d.start],
-              target: map[i],
+      if (include_idx) {
+        nodes.forEach(function (d) {
+          if (d.ends) {
+            d.ends.forEach(function (i, idx) {
+              ends.push({
+                source: map[d.start], // node of Break1
+                target: map[i], // node of Break2
+                idx: idx, // index of source.ends
+              });
             });
-          });
-        }
-      });
+          }
+        });
+      } else {
+        nodes.forEach(function (d) {
+          if (d.ends) {
+            d.ends.forEach(function (i) {
+              ends.push({
+                source: map[d.start], // node of Break1
+                target: map[i], // node of Break2
+              });
+            });
+          }
+        });
+      }
 
       return ends;
     },
@@ -102,8 +116,28 @@ bundle = (function () {
     return link_style_template;
   })();
 
+  var selected_stroke_color = "rgb(218, 227, 43)";
+  var strokes = {};
+
+  p.clear_source_strokes = function (circosnr) {
+    if (circosnr in strokes) {
+      strokes[circosnr].forEach((v) => {
+        restore_stroke(`#path${v[0]}`, this.link_style); // v[0]=ilink
+      });
+      strokes[circosnr] = [];
+      ca_draw.update_viewer(circosnr, true);
+    }
+  };
+
+  p.get_source_strokes = function (circosnr) {
+    if (!(circosnr in strokes)) return [];
+    return strokes[circosnr].map((v) => {
+      return v.slice();
+    });
+  };
+
   p.draw_bundle = function (obj, arc_data, data, options) {
-    var bundle = d3.layout.bundle();
+    var bundle = d3.layout.bundle(); // Create a new default bundle layout
 
     var div = d3
       .select("#" + obj)
@@ -114,13 +148,13 @@ bundle = (function () {
     var svg = div
       .append("svg:svg")
       .attr("width", options.w)
-      .attr("height", options.w)
+      .attr("height", options.h)
       .append("svg:g")
       .attr("transform", "translate(" + options.rx + "," + options.ry + ")");
     this.svg_obj = svg;
 
     var cluster = d3.layout
-      .cluster()
+      .cluster() // Create a new default cluster layout
       .size([360, options.ry - options.cluster_size])
       .sort(function (a, b) {
         return d3.ascending(a.key, b.key);
@@ -246,7 +280,9 @@ bundle = (function () {
 
     for (var idx1 = 0; idx1 < link_style.length; idx1++) {
       link_data[idx1] = setLinkData(classes[idx1]);
-      var links = packages.ends(cluster.nodes(packages.root(classes[idx1])));
+      //  cluster.nodes: compute the cluster layout and return the array of nodes
+      // links contains node information for breakpoints
+      var links = packages.ends(cluster.nodes(packages.root(classes[idx1])), options.enable_viewer);
       var splines = bundle(links);
 
       svg
@@ -256,6 +292,11 @@ bundle = (function () {
         .data(links)
         .enter()
         .append("path")
+        .attr("id", function (d) {
+          if (!options.enable_viewer) return null;
+          var ilink = d.source.ilinks[d.idx];
+          return "path" + ilink;
+        })
         .attr("class", link_style[idx1].name)
         .attr("d", function (d, i) {
           var start = d.source.key.split("_")[0];
@@ -268,22 +309,48 @@ bundle = (function () {
         .style("stroke-opacity", link_style[idx1].stroke_opacity)
         .style("fill", "none")
 
-        .on("mouseover", function (d, i) {
-          if (enable_tooltip == false) return;
+        .on("click", function (d) {
+          if (!options.enable_viewer) return;
 
-          var group_id = -1;
-          for (var k = 0; k < link_style.length; k++) {
-            if (d3.select(this).classed(link_style[k].name) == true) {
-              group_id = k;
-              break;
+          var circosnr = parseInt(obj.replace("map", "")); // circosnr: int
+          var ilink = d.source.ilinks[d.idx];
+
+          if (d3.select(this).style("stroke") === selected_stroke_color) {
+            // Here, stroke is already selected
+            restore_stroke(this, link_style);
+            // Remove selected stroke
+            for (var i = 0; i < strokes[circosnr].length; i++) {
+              if (strokes[circosnr][i][0] === ilink) {
+                strokes[circosnr].splice(i, 1);
+                break;
+              }
             }
+          } else {
+            // Here, stroke is not selected yet
+            d3.select(this).style("stroke", selected_stroke_color);
+            if (!strokes[circosnr]) strokes[circosnr] = [];
+            strokes[circosnr].push([ilink]); // Push list as it may add some elements in the future
           }
 
+          // Update viewer
+          var view_id = `#view${circosnr}`;
+          if (d3.select(view_id).style("visibility") === "visible") {
+            ca_draw.update_viewer(circosnr, true);
+          }
+        })
+
+        .on("mouseover", function (d) {
+          if (enable_tooltip == false) return;
+
+          var group_id = get_groupid(this, link_style);
+
           // link style
-          d3.select(this)
-            .style("stroke", link_style[group_id].active_stroke)
-            .style("stroke-width", link_style[group_id].active_stroke_width)
-            .style("stroke-opacity", link_style[group_id].active_stroke_opacity);
+          if (d3.select(this).style("stroke") !== selected_stroke_color) {
+            d3.select(this)
+              .style("stroke", link_style[group_id].active_stroke)
+              .style("stroke-width", link_style[group_id].active_stroke_width)
+              .style("stroke-opacity", link_style[group_id].active_stroke_opacity);
+          }
 
           // remove last tooltip data
           d3.select("#tooltip").selectAll("p").remove();
@@ -312,21 +379,10 @@ bundle = (function () {
         })
         .on("mouseout", function () {
           if (enable_tooltip == false) return;
-
-          var group_id = -1;
-          for (var k = 0; k < link_style.length; k++) {
-            if (d3.select(this).classed(link_style[k].name) == true) {
-              group_id = k;
-              break;
-            }
-          }
-
           // link style
-          d3.select(this)
-            .style("stroke", link_style[group_id].stroke)
-            .style("stroke-width", link_style[group_id].stroke_width)
-            .style("stroke-opacity", link_style[group_id].stroke_opacity);
-
+          if (d3.select(this).style("stroke") !== selected_stroke_color) {
+            restore_stroke(this, link_style);
+          }
           //Hide the tooltip
           d3.select("#tooltip").classed("hidden", true);
         });
@@ -410,12 +466,35 @@ bundle = (function () {
 
     return data;
   }
+
   // -----------------------------------
   // over-ride
   // -----------------------------------
   p.bar_selected = function (key, on) {
     console.log("base function, please over-ride.");
   };
+
+  // -----------------------------------
+  // utility
+  // -----------------------------------
+  function get_groupid(elm, link_style) {
+    var group_id = -1;
+    for (var k = 0; k < link_style.length; k++) {
+      if (d3.select(elm).classed(link_style[k].name) == true) {
+        group_id = k;
+        break;
+      }
+    }
+    return group_id;
+  }
+
+  function restore_stroke(id, link_style) {
+    var group_id = get_groupid(id, link_style);
+    d3.select(id)
+      .style("stroke", link_style[group_id].stroke)
+      .style("stroke-width", link_style[group_id].stroke_width)
+      .style("stroke-opacity", link_style[group_id].stroke_opacity);
+  }
 
   return bundle;
 })();

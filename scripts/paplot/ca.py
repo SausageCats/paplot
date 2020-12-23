@@ -114,23 +114,52 @@ detail_template = """
 <div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
   <table>
     <tr>
-      <tr>
-        <td class="float_header" id="float{id}_t"><strong>{title}</strong></td>
-        <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('#float{id}')" margin="0" /></td>
-      </tr>
+      <td rowspan="2" colspan="2" class="float_header" id="float{id}_t"><strong>{title}</strong></td>
+      <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('{id}')" margin="0" /></td>
     </tr>
+    <tr>
+      <td><input type="button" value="D" class="float_data" onclick="ca_draw.update_viewer({id})" /></td>
     <tr>
       <td colspan="2" class="float_svg" id="map{id}"></td>
     </tr>
   </table>
-  <div
-    class="float_handle"
-    id="float{id}_h"
+  <div class="float_handle" id="float{id}_h"
     onmousedown="ca_draw.mouse_down(event, '#float{id}')"
     onmousemove="ca_draw.mouse_move(event, '#float{id}')"
     onmouseup="ca_draw.mouse_up(event, '#float{id}')"
     onmouseout="ca_draw.mouse_out('#float{id}')"
   ></div>
+  <div id="view{id}" class="view">
+    <div class="view_area_source view_area_common">
+      <div>
+        <input type="button" value="Save" />
+        <input type="button" value="Clear" />
+        <input type="checkbox" id="view_auto_scroll{id}"/><label for="view_auto_scroll{id}">AutoScroll</label>
+      </div>
+      <div class="view_mode">
+        <div><label for="view_mode" onchange="ca_draw.change_view({id})"><select id='view_mode'>
+          <option value="startend" selected>Extract data based on start and end points</option>
+          <option value="start">Extract data based on start point</option>
+          <option value="end">Extract data based on end point</option>
+        </select></label></div>
+      </div>
+      <div>
+        <input type="textarea" class="view_breakpoint_text" placeholder="Start Left" />
+        <input type="textarea" class="view_breakpoint_text" placeholder="Start Right" />
+        <input type="textarea" class="view_breakpoint_text" placeholder="End Left" />
+        <input type="textarea" class="view_breakpoint_text" placeholder="End Right" />
+        <input type="button" value="Run" class="view_startend_button" />
+      </div>
+      <div id="view{id}_data_source" class="view_data_common"><ul></ul></div>
+    </div>
+    <div class="view_area_target view_area_common">
+      <div>
+        <input type="button" value="Save" />
+      </div>
+      <div id="view{id}_data_target" class="view_data_common"><ul></ul></div>
+    </div>
+  </div>
+  <div id="view_vline{id}" onmousedown="ca_draw.view_vline_mousedown(event, '{id}')"></div>
 </div>
 """
 detail_template = to_mintext(detail_template)

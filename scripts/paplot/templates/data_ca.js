@@ -12,23 +12,24 @@ var node_name = function (Chr, index, leveling) {
 };
 
 var create_blank_nodes = function (node_size, leveling) {
+  /* leveling is true only for arc */
   if (leveling == null) {
     leveling = false;
   }
   var nodes = [];
-  for (var i = 0; i < ca_data.genome_size.length; i++) {
+  for (var i = 0; i < ca_data.genome_size.length; i++) /* Loop by chromesome */ {
     var item_num = Math.floor(ca_data.genome_size[i].size / node_size) + 1;
     if (leveling == false) {
       item_num = item_num + 1;
     }
-    for (var j = 0; j < item_num; j++) {
-      var start;
+    for (var j = 0; j < item_num; j++) /* Loop by nodes */ {
+      var start; /* start: string */
       if (leveling == true) {
         start = node_name(ca_data.genome_size[i].chr, j, true);
       } else {
         start = node_name(ca_data.genome_size[i].chr, j, false);
       }
-      nodes.push({ start: start, ends: [], tooltip: [] });
+      nodes.push({ start: start, ends: [], tooltip: [], ilinks: [] });
     }
   }
   return nodes;
@@ -101,13 +102,16 @@ var create_bundle_dataset = function (ID, node_size, tooltip) {
     each_dataset[i] = create_blank_nodes(node_size);
   }
 
-  // Update "ends" and "tooltip" in each_dataset
+  // Update "ends", "tooltip", and "ilinks" in each_dataset
   for (i = 0; i < ca_data.links.length; i++) {
     // ca_data.links[i]: 0:ID, 1:chr1, 2:break1, 3:chr2, 4:break2, 5:is_inner, 6:group_id, 7:tooltip_data
+
+    // Check if target sample ID has breakpoints
     if (ca_data.links[i][0] != ID) {
       continue;
     }
 
+    // Get the index of node corresponding to ca_data.links[i]
     var start = node_name(ca_data.links[i][1], Math.floor(ca_data.links[i][2] / node_size));
     var index = -1;
     for (var j = 0; j < each_dataset[0].length; j++) {
@@ -119,9 +123,10 @@ var create_bundle_dataset = function (ID, node_size, tooltip) {
     if (index < 0) {
       continue;
     }
+
+    // Rename "end" (node name) if the start and end names match
     var end_pos = Math.floor(ca_data.links[i][4] / node_size);
     var end = node_name(ca_data.links[i][3], end_pos);
-    // if same position, sift end position.
     if (start == end) {
       if (end_pos == Math.floor(ca_data.genome_size[Number(ca_data.links[i][3])].size / node_size)) {
         end = node_name(ca_data.links[i][3], end_pos - 1);
@@ -130,6 +135,8 @@ var create_bundle_dataset = function (ID, node_size, tooltip) {
       }
     }
 
+    // Update each_dataset
+
     var group = ca_data.links[i][6];
     each_dataset[group][index].ends.push(end); // end: String
 
@@ -137,6 +144,8 @@ var create_bundle_dataset = function (ID, node_size, tooltip) {
     if (tooltip == true) {
       // tooltip_partial(...): Array
       each_dataset[group][index].tooltip.push(tooltip_partial(ca_data.tooltip_format.bundle, ca_data.links[i]));
+      // index of ca_data.links
+      each_dataset[group][index].ilinks.push(i);
     }
   }
 
