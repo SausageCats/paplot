@@ -535,7 +535,7 @@
   ca_draw.hide_float = function (circosnr) {
     // Close circosplot window
     d3.select(`#float${circosnr}`).style("visibility", "hidden");
-    // Close view window
+    // Close viewer
     bundles[ca_data.index_ID[circosnr]].clear_source_strokes(circosnr);
     d3.select(`#view${circosnr}`)
       .style("width", d3.select(`#view${circosnr}`).style("min-width"))
@@ -843,6 +843,7 @@
   var _bp_start = [];
   var _bp_end = [];
 
+  // Resize viewer window when selecting vertical line
   ca_draw.view_vline_mousedown = function (e, id) {
     var view_id = `#view${id}`;
     var vline_id = `#view_vline${id}`;
@@ -889,6 +890,16 @@
       d3.select(vline_id).style("margin-left", new_vleft + "px");
     };
   };
+
+  // -----------------------------------------------------------------------------
+  // Buttons for viewer
+
+  // Clear viewer
+  ca_draw.clear_viewer = function (circosnr) {
+    bundles[ca_data.index_ID[circosnr]].clear_source_strokes(circosnr);
+  };
+
+  // -----------------------------------------------------------------------------
 
   // Extract and display the data corresponding to a selected stroke
   ca_draw.update_viewer = function (circosnr, do_update = false) {

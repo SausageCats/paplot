@@ -133,7 +133,7 @@ detail_template = """
     <div class="view_area_source view_area_common">
       <div>
         <input type="button" value="Save" />
-        <input type="button" value="Clear" />
+        <input type="button" value="Clear" onclick="ca_draw.clear_viewer({id})" />
         <input type="checkbox" id="view_auto_scroll{id}"/><label for="view_auto_scroll{id}">AutoScroll</label>
       </div>
       <div class="view_mode">
