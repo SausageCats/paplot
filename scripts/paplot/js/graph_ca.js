@@ -540,7 +540,7 @@
     d3.select(`#view${circosnr}`)
       .style("width", d3.select(`#view${circosnr}`).style("min-width"))
       .style("visibility", "hidden");
-    d3.select(`#view_vline${circosnr}`).style("visibility", "hidden");
+    d3.select(`#view_vline${circosnr}`).style("margin-left", "0px").style("visibility", "hidden");
   };
 
   ca_draw.resize_if = function () {
