@@ -117,11 +117,8 @@ detail_template = """
       <td rowspan="2" colspan="2" class="float_header" id="float{id}_t"><strong>{title}</strong></td>
       <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('{id}')" margin="0" /></td>
     </tr>
-    <tr>
-      <td><input type="button" value="D" class="float_data" onclick="ca_draw.update_viewer({id})" /></td>
-    <tr>
-      <td colspan="2" class="float_svg" id="map{id}"></td>
-    </tr>
+    <tr><td><input type="button" value="D" class="float_data" onclick="ca_draw.update_viewer({id})" /></td></tr>
+    <tr><td colspan="2" class="float_svg" id="map{id}"></td></tr>
   </table>
   <div class="float_handle" id="float{id}_h"
     onmousedown="ca_draw.mouse_down(event, '#float{id}')"
@@ -132,8 +129,8 @@ detail_template = """
   <div id="view{id}" class="view">
     <div class="view_area_source view_area_common">
       <div>
-        <input type="button" value="Save" />
-        <input type="button" value="Clear" onclick="ca_draw.clear_viewer({id})" />
+        <input type="button" value="Save" onclick="ca_draw.view_save({id}, 'source')" />
+        <input type="button" value="Clear" onclick="ca_draw.view_clear({id})" />
         <input type="checkbox" id="view_auto_scroll{id}"/><label for="view_auto_scroll{id}">AutoScroll</label>
       </div>
       <div class="view_mode">
@@ -154,7 +151,7 @@ detail_template = """
     </div>
     <div class="view_area_target view_area_common">
       <div>
-        <input type="button" value="Save" />
+        <input type="button" value="Save" onclick="ca_draw.view_save({id}, 'target')" />
       </div>
       <div id="view{id}_data_target" class="view_data_common"><ul></ul></div>
     </div>
@@ -169,14 +166,10 @@ overlay_template = """
 <div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
   <table>
     <tr>
-      <tr>
-        <td class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
-        <td><input type="button" value="X" class="float_close" onclick="ca_draw.close_overlay()" margin="0" /></td>
-      </tr>
+      <td class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
+      <td><input type="button" value="X" class="float_close" onclick="ca_draw.close_overlay()" margin="0" /></td>
     </tr>
-    <tr>
-      <td colspan="2" class="float_svg" id="map{id}"></td>
-    </tr>
+    <tr><td colspan="2" class="float_svg" id="map{id}"></td></tr>
   </table>
   <div
     class="float_handle"

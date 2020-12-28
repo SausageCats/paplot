@@ -894,9 +894,30 @@
   // -----------------------------------------------------------------------------
   // Buttons for viewer
 
-  // Clear viewer
-  ca_draw.clear_viewer = function (circosnr) {
+  // Clear data in viewer
+  ca_draw.view_clear = function (circosnr) {
     bundles[ca_data.index_ID[circosnr]].clear_source_strokes(circosnr);
+  };
+
+  // Save data in viewer
+  ca_draw.view_save = function (circosnr, source_or_target) {
+    var data_id = `#view${circosnr}_data_${source_or_target === "source" ? "source" : "target"}`;
+    var filename = "data.txt";
+    var text = d3.select(data_id)[0][0].innerText;
+    var blob = new Blob([text], { type: "text/plain", endings: "native" });
+    console.log(window.navigator.msSaveBlob);
+    if (window.navigator.msSaveBlob) {
+      // IE
+      window.navigator.msSaveBlob(blob, filename);
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+    } else {
+      // Chrome, Edge, Firefox
+      var a = document.createElement("a");
+      a.href = window.URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(a.href);
+    }
   };
 
   // -----------------------------------------------------------------------------
