@@ -125,7 +125,7 @@ bundle = (function () {
         restore_stroke(`#path${v[0]}`, this.link_style); // v[0]=ilink
       });
       strokes[circosnr] = [];
-      ca_draw.update_viewer(circosnr, true);
+      viewer.update(circosnr, true);
     }
   };
 
@@ -335,7 +335,7 @@ bundle = (function () {
           // Update viewer
           var view_id = `#view${circosnr}`;
           if (d3.select(view_id).style("visibility") === "visible") {
-            ca_draw.update_viewer(circosnr, true);
+            viewer.update(circosnr, true);
           }
         })
 

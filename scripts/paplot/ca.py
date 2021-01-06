@@ -117,7 +117,7 @@ detail_template = """
       <td rowspan="2" colspan="2" class="float_header" id="float{id}_t"><strong>{title}</strong></td>
       <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('{id}')" margin="0" /></td>
     </tr>
-    <tr><td><input type="button" value="D" class="float_data" onclick="ca_draw.update_viewer({id})" /></td></tr>
+    <tr><td><input type="button" value="D" class="float_data" onclick="viewer.update({id})" /></td></tr>
     <tr><td colspan="2" class="float_svg" id="map{id}"></td></tr>
   </table>
   <div class="float_handle" id="float{id}_h"
@@ -129,12 +129,12 @@ detail_template = """
   <div id="view{id}" class="view">
     <div class="view_area_source view_area_common">
       <div>
-        <input type="button" value="Save" onclick="ca_draw.view_save({id}, 'source')" />
-        <input type="button" value="Clear" onclick="ca_draw.view_clear({id})" />
+        <input type="button" value="Save" onclick="viewer.save({id}, 'source')" />
+        <input type="button" value="Clear" onclick="viewer.clear({id})" />
         <input type="checkbox" id="view_auto_scroll{id}"/><label for="view_auto_scroll{id}">AutoScroll</label>
       </div>
       <div class="view_mode">
-        <div><label for="view_mode" onchange="ca_draw.change_view({id})"><select id='view_mode'>
+        <div><label for="view_mode" onchange="viewer.change_extract({id})"><select id='view_mode{id}'>
           <option value="startend" selected>Extract data based on start and end points</option>
           <option value="start">Extract data based on start point</option>
           <option value="end">Extract data based on end point</option>
@@ -151,12 +151,12 @@ detail_template = """
     </div>
     <div class="view_area_target view_area_common">
       <div>
-        <input type="button" value="Save" onclick="ca_draw.view_save({id}, 'target')" />
+        <input type="button" value="Save" onclick="viewer.save({id}, 'target')" />
       </div>
       <div id="view{id}_data_target" class="view_data_common"><ul></ul></div>
     </div>
   </div>
-  <div id="view_vline{id}" onmousedown="ca_draw.view_vline_mousedown(event, '{id}')"></div>
+  <div id="view_vline{id}" onmousedown="viewer.vline_mousedown(event, '{id}')"></div>
 </div>
 """
 detail_template = to_mintext(detail_template)
