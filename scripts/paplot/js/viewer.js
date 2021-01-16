@@ -410,10 +410,12 @@
         }
 
         // Change background color of view data
-        d3.selectAll(`.view_data${item.id_group}`).style("background-color", "#e1d5d5"); // gray and red
+        var id = item.is_src_area ? `#view${circosnr}_data_source` : `#view${circosnr}_data_target`;
+        var width = d3.select(id)[0][0].scrollWidth;
+        d3.selectAll(`.view_data${item.id_group}`).style("background-color", "#e1d5d5").style("width", width); // gray and red
         if (!src_has_d) {
-          //d3.select(`#view_data${item.id_one}`).style("background-color", "#bac8ff"); // Light blue
-          d3.select(`#view_data${item.id_one}`).style("background-color", "#ffcc7e"); // Light orange
+          //d3.select(`#view_data${item.id_one}`).style("background-color", "#bac8ff").style("width", width); // Light blue
+          d3.select(`#view_data${item.id_one}`).style("background-color", "#ffcc7e").style("width", width); // Light orange
         } else {
           //var color = "#7fd3a4" // Light green
           var color = "#f0a6a6"; // Light Red
