@@ -89,6 +89,36 @@
       </div>
     </div>
 
+    <div id="extr_frame" onclick="fwin.bring_window_to_front('#extr_frame')">
+      <table><tr>
+        <td id="extr_title"><strong>Extraction of breakpoint positions</strong></td>
+        <td><input type="button" value="X" id="extr_close" onclick="extr.close()" /></td>
+      </tr></table>
+      <table><tr>
+        <td><input type="button" value="Save" id="extr_save" onclick="extr.save()" /></td>
+        <td><input type="button" value="Clear" id="extr_clear" onclick="extr.clear()" /></td>
+      </tr></table>
+      <table><tr>
+        <td><input type="textarea" id="extr_label1" class="extr_chr" placeholder="Chr1" /></td>
+        <td><input type="textarea" id="extr_bpl1" class="extr_breakpoint" placeholder="Left1" /></td>
+        <td><input type="textarea" id="extr_bpr1" class="extr_breakpoint" placeholder="Right1" /></td>
+        <td><input type="button" value="&#x2500;" id="extr_hyphen" /></td>
+        <td><input type="textarea" id="extr_label2" class="extr_chr" placeholder="Chr2" /></td>
+        <td><input type="textarea" id="extr_bpl2" class="extr_breakpoint" placeholder="Left2" /></td>
+        <td><input type="textarea" id="extr_bpr2" class="extr_breakpoint" placeholder="Right2" /></td>
+        <td><input type="button" value="Extract" id="extr_extract" onclick="extr.extract()" /></td>
+      </tr></table>
+      <table><tr>
+        <td id="extr_output"><ul></ul></td>
+      </tr></table>
+      <div id="extr_handle"
+        onmousedown="fwin.mouse_down(event, '#extr_frame', '#extr_handle')"
+        onmousemove="fwin.mouse_move(event, '#extr_frame')"
+        onmouseup="fwin.mouse_up(event, '#extr_frame')"
+        onmouseout="fwin.mouse_out('#extr_frame')"
+      ></div>
+    </div>
+
     <!-- ### details ### -->
 {details}
 
@@ -115,7 +145,9 @@
     <script type="text/javascript" src="../js/bar.js"></script>
     <script type="text/javascript" src="./{data_js}"></script>
     <script type="text/javascript" src="../js/graph_ca.js"></script>
-    <script type="text/javascript" src="../js/viewer.js"></script>
+    <script type="text/javascript" src="../js/ca/viewer.js"></script>
+    <script type="text/javascript" src="../js/ca/extraction.js"></script>
+    <script type="text/javascript" src="../js/ca/floating_window.js"></script>
     <script>
       ca_draw.draw_select();
 {call_list}

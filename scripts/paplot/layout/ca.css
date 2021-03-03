@@ -31,7 +31,9 @@ input[id^="btn_"]:active {
  * Float window
  */
 
-.float_header {
+.float_title {
+  width: 350px;
+  padding: 15px;
   word-break: break-all;
 }
 
@@ -96,7 +98,6 @@ input[id^="btn_"]:active {
 div[id^="view_vline"] {
   top: 0px;
   left: 850px;
-  margin-left 0px;
   height: 490px; /* 270+220 */
   position: absolute;
   width: 5px;
@@ -123,18 +124,28 @@ div[id^="view_vline"] {
   cursor: w-resize;
 }
 
-.view_breakpoint_text {
-  width: 100px;
-}
-
 .view_area_common {
   border: solid 1px black;
 }
 .view_area_source {
   height: 270px;  /* 190+80 */
+  border-bottom: none;
 }
 .view_area_target {
   height: 220px;  /* 190+30 */
+  border-top: none;
+}
+
+input[id^="view_cb"] {
+  margin-right: 1px;
+}
+
+.view_hr {
+  margin: 0;
+  border: none;
+  background-color: black;
+  color: black;
+  height: 1px;
 }
 
 .view_data_common {
@@ -155,4 +166,134 @@ div[id^="view_vline"] {
 }
 .view_data_common ul li.view_comment {
   color: #2966d4;
+}
+
+/* normal */
+.view_autoscroll {
+  display: inline-block;
+  width: 120px;
+  height: 24px;
+}
+.view_autoscroll input {
+  display: none;
+}
+.view_autoscroll label {
+  display: block;
+  padding-left: 1px;
+  box-sizing: border-box;
+  border: 2px solid #9f9b9b;
+  line-height: 22px;
+}
+/* input off */
+.view_autoscroll label span:after{
+  content: "AutoScroll OFF";
+  padding-left: 8px;
+  color: #9f9b9b;
+}
+/* input on */
+.view_autoscroll input:checked + label {
+  border-color: #209a42;
+}
+.view_autoscroll input:checked + label span:after{
+  content: "AutoScroll ON";
+  padding-left: 8px;
+  color: #209a42;
+}
+
+
+/**
+ * Extraction
+ */
+
+#extr_frame {
+  position: absolute;
+  visibility: hidden;
+  border: solid 2px gray;
+  font 12px;
+  border-radius: 0.3em;
+  width: 585px;  /* 580+5(fine tuning) */
+  height: 495px; /* 400+30(header)+30(save...)+30(chr...)+5(fine tuning) */
+  background-color: white;
+  border-color: rgb(211, 211, 211);
+  margin: 0;
+  padding: 0;
+  opacity: 1.0;
+}
+
+/* 1 line */
+#extr_title {
+  width: 520px;
+  height: 30px;
+  background-color: rgb(211, 211, 211);
+  font-size 10px;
+  margin: 0;
+  padding: 5px 10px;
+}
+#extr_close {
+  width: 30px;
+  height: 30px;
+  margin-left: 15px;
+}
+#extr_handle {
+  position: relative;
+  width: 520px;
+  height: 30px;
+  top: -90px; /* title bar(30) + save/clear buttons(30) + extraction textarea(30) */
+  left: 0px;
+  cursor: move;
+}
+
+/* 2 line */
+#extr_save {
+  width: 60px;
+  height: 30px;
+}
+#extr_clear {
+  width: 60px;
+  height: 30px;
+}
+
+/* 3 line */
+/* 50*2+90*4+60+30=550 */
+.extr_chr {
+  width: 50px;
+  height: 30px;
+  margin 0;
+  padding 0;
+}
+.extr_breakpoint {
+  width: 90px;
+  height: 30px;
+  margin 0;
+  padding 0;
+}
+#extr_extract {
+  width: 70px;
+  height: 30px;
+  margin 0;
+  padding 0;
+}
+#extr_hyphen {
+  width: 40px;
+  height: 30px;
+  background-color: white;
+  border-width: 0px;
+  width: 2em;
+  cursor: default;
+}
+
+/* 4 lines or more */
+#extr_output {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 580px;
+  overflow: scroll;
+  height: 400px;
+  white-space: nowrap;
+}
+#extr_output ul {
+  list-style:none;
+  margin: 0;
+  padding-left: 2px;
 }

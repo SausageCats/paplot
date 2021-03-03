@@ -19,7 +19,7 @@
 
     if (d3.select(vline_id).style("cursor") === "default" && window.onmousemove !== null) return;
 
-    ca_draw.bring_window_to_front(`#float${id}`);
+    fwin.bring_window_to_front(`#float${id}`);
     modal.style.display = "block";
 
     window.onmouseup = function (e) {
@@ -66,6 +66,53 @@
   viewer.clear = function (circosnr) {
     ca_draw.get_bundle(ca_data.index_ID[circosnr]).clear_source_strokes(circosnr);
   };
+
+  // Save data in viewer
+  viewer.extract = function (circosnr) {
+    var cbs = get_checked_boxes(circosnr);
+    if (cbs.length === 0) {
+      extr.open(circosnr);
+      return;
+    }
+    cbs.forEach((v) => {
+      function get_label(chr) {
+        var label;
+        for (var i = 0; i < ca_data.genome_size.length; i++) {
+          if (ca_data.genome_size[i].chr === chr) {
+            label = ca_data.genome_size[i].label;
+            break;
+          }
+        }
+        return label;
+      }
+      var id = `#${v.id}`;
+      var ilink = d3.select(id)[0][0].dataset.ilink;
+      var ca = ca_data.links[ilink];
+      var label1 = get_label(ca[1]);
+      var label2 = get_label(ca[3]);
+      extr.extract(circosnr, [label1, ca[2], ca[2], label2, ca[4], ca[4]]);
+    });
+  };
+
+  viewer.uncheck = function (circosnr) {
+    get_checked_boxes(circosnr).forEach((v) => {
+      if (v.checked) v.checked = false;
+    });
+  };
+
+  function get_checked_boxes(circosnr) {
+    var ids = [
+      `#view${circosnr}_data_source ul li label input`, //
+      `#view${circosnr}_data_target ul li label input`, //
+    ];
+    var cbs = [];
+    ids.forEach((id) => {
+      d3.selectAll(id)[0].forEach((v) => {
+        if (v.checked) cbs.push(v);
+      });
+    });
+    return cbs;
+  }
 
   // Save data in viewer
   viewer.save = function (circosnr, source_or_target) {
@@ -296,7 +343,7 @@
 
     // Create comment lines
     var com_lines = [];
-    var com_nodes = [];
+    //var com_nodes = [];
     for (var i = 0; i < focus_ilinks.length; i++) {
       var ilink = base_ilinks_one[i][0];
       var ca = ca_data.links[ilink];
@@ -308,7 +355,7 @@
       var la1 = ca_data.genome_size[ch1].label;
       var la2 = ca_data.genome_size[ch2].label;
       com_lines.push(`${la1}(${bp1}) -> ${la2}(${bp2}) [${focus_ilinks[i].length}/${focus_len}]`);
-      com_nodes.push({ title: ca[0], chr1: ca[1], bp1: ca[2], chr2: ca[3], bp2: ca[4] });
+      //com_nodes.push({ title: ca[0], chr1: ca[1], bp1: ca[2], chr2: ca[3], bp2: ca[4] });
     }
 
     // Create data
@@ -328,17 +375,18 @@
         id_group: id_group,
         id_one: `${circosnr}${s_or_t}${idx_data}`,
         ilink_cur: -1,
+        ilink_src: -1,
         ilink_org: ilink_org,
         unfoc_idx: unfoc_idxes[idx_data],
         hrow: hrows[idx_data],
-        ...com_nodes[i],
+        //node: com_nodes[i],
       });
       idx_data += 1;
       // data --------------------------
       v.forEach((w) => {
         var ca = ca_data.links[w];
         data.push(`${ca[0]}__${String(parseInt(ca[1]) + 1)}__${String(ca[2])}__${String(parseInt(ca[3]) + 1)}__${String(ca[4])}`);
-        var node = { title: ca[0], chr1: ca[1], bp1: ca[2], chr2: ca[3], bp2: ca[4] };
+        //var node = { title: ca[0], chr1: ca[1], bp1: ca[2], chr2: ca[3], bp2: ca[4] };
         var idx = src_ilinks[i].indexOf(w);
         var found = base_ilinks_all[i].includes(w);
         items.push({
@@ -347,11 +395,12 @@
           circosnr: circosnr,
           id_group: id_group,
           id_one: `${circosnr}${s_or_t}${idx_data}`,
-          ilink_cur: idx !== -1 && !found ? src_ilinks[i][idx] : -1,
+          ilink_cur: w,
+          ilink_src: idx !== -1 && !found ? src_ilinks[i][idx] : -1,
           ilink_org: ilink_org,
           unfoc_idx: unfoc_idxes[idx_data],
           hrow: hrows[idx_data],
-          ...node,
+          //node: node,
         });
         idx_data += 1;
       });
@@ -369,17 +418,16 @@
       .data(data)
       .enter()
       .append("li")
-
-      .text(function (d, foc_idx) {
+      .attr("id", function (d, foc_idx) {
+        return `view_data${items[foc_idx].id_one}`;
+      })
+      .attr("class", function (d, foc_idx) {
         var item = items[foc_idx];
-        d3.select(this).attr("id", `view_data${item.id_one}`);
         if (item.is_comment) {
-          // view_comment is defined in ../layout/ca.css
-          d3.select(this).attr("class", `view_data${item.id_group} view_comment`);
+          return `view_data${item.id_group} view_comment`; // view_comment is defined in ../layout/ca.css
         } else {
-          d3.select(this).attr("class", `view_data${item.id_group}`);
+          return `view_data${item.id_group}`;
         }
-        return d;
       })
 
       .on("mouseover", function (d, foc_idx) {
@@ -393,9 +441,9 @@
           var clone = d3.select(node.parentNode.parentNode.insertBefore(node.cloneNode(true), null));
           d3.select(clone)[0][0].attr("class", `clone_path${circosnr}`).style("stroke", color).style("stroke-width", width);
         }
-        if (item.ilink_cur !== -1) {
+        if (item.ilink_src !== -1) {
           change_stroke_color(item.ilink_org, "#00f", "4px"); // Blue
-          change_stroke_color(item.ilink_cur, "#f00", "4px"); // Red
+          change_stroke_color(item.ilink_src, "#f00", "4px"); // Red
         } else if (src_has_d) {
           change_stroke_color(item.ilink_org, "#f00", "4px"); // Red
         } else {
@@ -403,7 +451,7 @@
         }
 
         // Auto scroll
-        if (d3.select(`#view_auto_scroll${circosnr}`)[0][0].checked) {
+        if (d3.select(`#view_autoscroll${circosnr}`)[0][0].checked) {
           var id = item.is_src_area ? `view${circosnr}_data_target` : `view${circosnr}_data_source`;
           var scroll = Math.max(0, (item.hrow + 1) * 20 - 100); // 100 is height of area. see ../layout/ca.css
           document.getElementById(id).scrollTop = scroll;
@@ -432,6 +480,30 @@
         d3.selectAll(`.clone_path${item.circosnr}`).remove();
         // Remove background color
         d3.selectAll(`.view_data${item.id_group}`).style("background-color", null);
+      })
+
+      .append("label")
+      .append("input")
+      .attr("type", "checkbox")
+      .attr("id", function (d, foc_idx) {
+        var item = items[foc_idx];
+        if (item.is_comment) {
+          d3.select(this).remove(); // remove input tag
+          return;
+        }
+        return `view_cb${item.id_one}`;
+      })
+      .attr("data-ilink", function (d, foc_idx) {
+        var item = items[foc_idx];
+        if (item.is_comment) return;
+        return item.ilink_cur;
+      });
+
+    d3.selectAll(data_id + " ul li label")
+      .data(data)
+      .append("text")
+      .text(function (d) {
+        return d;
       });
   }
 

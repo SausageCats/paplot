@@ -364,15 +364,15 @@ bundle = (function () {
           }
           // Display tooltip at the frontmost of the screen
           d3.select("#tooltip").style("z-index", 2147483647);
-          //Show the tooltip
+          // Show the tooltip
           d3.select("#tooltip").classed("hidden", false);
 
-          //Get this bar's x/y values, then argument for the tooltip
+          // Get this bar's x/y values, then argument for the tooltip
           var rect = document.getElementById(obj).getBoundingClientRect();
           var xPosition = parseFloat(rect.left) + window.pageXOffset + 10;
           var yPosition = parseFloat(rect.top) + window.pageYOffset + 10;
 
-          //Update the tooltip position and value
+          // Update the tooltip position and value
           d3.select("#tooltip")
             .style("left", xPosition + "px")
             .style("top", yPosition + "px");
@@ -383,7 +383,7 @@ bundle = (function () {
           if (d3.select(this).style("stroke") !== selected_stroke_color) {
             restore_stroke(this, link_style);
           }
-          //Hide the tooltip
+          // Hide the tooltip
           d3.select("#tooltip").classed("hidden", true);
         });
     }

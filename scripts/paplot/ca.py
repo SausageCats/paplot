@@ -111,27 +111,31 @@ call_template = 'ca_draw.draw_bandle_thumb("{id}", "{title}");\n'
 
 # Detailed thumbnail
 detail_template = """
-<div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
+<div class="float_frame" id="float{id}" onclick="fwin.bring_window_to_front('#float{id}')">
   <table>
     <tr>
-      <td rowspan="2" colspan="2" class="float_header" id="float{id}_t"><strong>{title}</strong></td>
+      <td rowspan="2" colspan="2" class="float_title" id="float{id}_t"><strong>{title}</strong></td>
       <td><input type="button" value="X" class="float_close" onclick="ca_draw.hide_float('{id}')" margin="0" /></td>
     </tr>
     <tr><td><input type="button" value="D" class="float_data" onclick="viewer.update({id})" /></td></tr>
     <tr><td colspan="2" class="float_svg" id="map{id}"></td></tr>
   </table>
   <div class="float_handle" id="float{id}_h"
-    onmousedown="ca_draw.mouse_down(event, '#float{id}')"
-    onmousemove="ca_draw.mouse_move(event, '#float{id}')"
-    onmouseup="ca_draw.mouse_up(event, '#float{id}')"
-    onmouseout="ca_draw.mouse_out('#float{id}')"
+    onmousedown="fwin.mouse_down(event, '#float{id}', '#float{id}_h')"
+    onmousemove="fwin.mouse_move(event, '#float{id}')"
+    onmouseup="fwin.mouse_up(event, '#float{id}')"
+    onmouseout="fwin.mouse_out('#float{id}')"
   ></div>
   <div id="view{id}" class="view">
     <div class="view_area_source view_area_common">
       <div>
-        <input type="button" value="Save" onclick="viewer.save({id}, 'source')" />
+        <div class="view_autoscroll">
+          <input type="checkbox" id="view_autoscroll{id}" />
+          <label for="view_autoscroll{id}"><span></span></label>
+        </div>
         <input type="button" value="Clear" onclick="viewer.clear({id})" />
-        <input type="checkbox" id="view_auto_scroll{id}"/><label for="view_auto_scroll{id}">AutoScroll</label>
+        <input id="view_extract{id}" type="button" value="Extract" onclick="viewer.extract({id})" />
+        <input type="button" value="Uncheck" onclick="viewer.uncheck({id})" />
       </div>
       <div class="view_mode">
         <div><label for="view_mode" onchange="viewer.change_extract({id})"><select id='view_mode{id}'>
@@ -140,19 +144,13 @@ detail_template = """
           <option value="end">Extract data based on end point</option>
         </select></label></div>
       </div>
-      <div>
-        <input type="textarea" class="view_breakpoint_text" placeholder="Start Left" />
-        <input type="textarea" class="view_breakpoint_text" placeholder="Start Right" />
-        <input type="textarea" class="view_breakpoint_text" placeholder="End Left" />
-        <input type="textarea" class="view_breakpoint_text" placeholder="End Right" />
-        <input type="button" value="Run" class="view_startend_button" />
-      </div>
+      <hr class="view_hr">
+      <input type="button" value="Save" onclick="viewer.save({id}, 'source')" />
       <div id="view{id}_data_source" class="view_data_common"><ul></ul></div>
     </div>
+    <hr class="view_hr">
     <div class="view_area_target view_area_common">
-      <div>
-        <input type="button" value="Save" onclick="viewer.save({id}, 'target')" />
-      </div>
+      <div><input type="button" value="Save" onclick="viewer.save({id}, 'target')" /></div>
       <div id="view{id}_data_target" class="view_data_common"><ul></ul></div>
     </div>
   </div>
@@ -163,21 +161,19 @@ detail_template = to_mintext(detail_template)
 
 overlay_template = """
 <div id="overlay" style="margin: 10px;">
-<div class="float_frame" id="float{id}" onclick="ca_draw.bring_window_to_front('#float{id}')">
+<div class="float_frame" id="float{id}" onclick="fwin.bring_window_to_front('#float{id}')">
   <table>
     <tr>
-      <td class="float_header" id="float{id}_t"><strong>OVERLAY</strong></td>
+      <td class="float_title" id="float{id}_t"><strong>OVERLAY</strong></td>
       <td><input type="button" value="X" class="float_close" onclick="ca_draw.close_overlay()" margin="0" /></td>
     </tr>
     <tr><td colspan="2" class="float_svg" id="map{id}"></td></tr>
   </table>
-  <div
-    class="float_handle"
-    id="float{id}_h"
-    onmousedown="ca_draw.mouse_down(event, '#float{id}')"
-    onmousemove="ca_draw.mouse_move(event, '#float{id}')"
-    onmouseup="ca_draw.mouse_up(event, '#float{id}')"
-    onmouseout="ca_draw.mouse_out('#float{id}')"
+  <div class="float_handle" id="float{id}_h"
+    onmousedown="fwin.mouse_down(event, '#float{id}', 'float{id}_h')"
+    onmousemove="fwin.mouse_move(event, '#float{id}')"
+    onmouseup="fwin.mouse_up(event, '#float{id}')"
+    onmouseout="fwin.mouse_out('#float{id}')"
   ></div>
 </div>
 </div>

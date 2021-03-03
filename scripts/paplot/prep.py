@@ -24,15 +24,11 @@ def copy_dir_lib(dst):
 
 def copy_dir_js(dst):
     """Copy ./js directory to the destination directory"""
-    import shutil
     import os
-    import glob
+    from distutils.dir_util import copy_tree
 
-    pattern = os.path.dirname(os.path.abspath(__file__)) + "/js/*"  # ./js/*
-    li_files = glob.glob(pattern)
-
-    for f in li_files:
-        shutil.copy(f, dst)
+    src = os.path.dirname(os.path.abspath(__file__)) + "/js"  # ./js/*
+    copy_tree(src, dst)
 
 def copy_dir_style(dst, config):
     """Copy ./style directory to the destination directory"""

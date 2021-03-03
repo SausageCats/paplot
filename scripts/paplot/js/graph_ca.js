@@ -507,7 +507,7 @@
 
     set_style(idx, circos_size, pos);
     highlight_window_title(title_id);
-    bring_window_to_front(float_id);
+    fwin.bring_window_to_front(float_id);
   };
 
   function set_style(idx, circos_size, pos) {
@@ -546,82 +546,6 @@
   ca_draw.resize_if = function () {
     div_select_bar.resize();
   };
-
-  // -----------------------------------------------------------------------------
-  // Mouse
-  // -----------------------------------------------------------------------------
-
-  var item = "";
-  var mouse_x = 0;
-  var mouse_y = 0;
-  var header_region = [];
-
-  ca_draw.mouse_down = function (event, id) {
-    item = id;
-    mouse_x = event.pageX;
-    mouse_y = event.pageY;
-    d3.select(id).style("opacity", 0.4);
-    expand_header_region(id.replace("#float", ""));
-    bring_window_to_front(id);
-  };
-
-  ca_draw.mouse_move = function (event, id) {
-    if (item != id) {
-      return;
-    }
-    var dist_x = mouse_x - event.pageX;
-    var dist_y = mouse_y - event.pageY;
-    if (Math.abs(dist_x) < 1 && Math.abs(dist_y) < 1) {
-      return;
-    }
-    d3.select(id).style("left", String(pos_tonum(d3.select(id).style("left")) - dist_x) + "px");
-    d3.select(id).style("top", String(pos_tonum(d3.select(id).style("top")) - dist_y) + "px");
-    mouse_x = event.pageX;
-    mouse_y = event.pageY;
-  };
-
-  ca_draw.mouse_up = function (event, id) {
-    ca_draw.mouse_out(id);
-  };
-
-  ca_draw.mouse_out = function (id) {
-    if (item != id) {
-      return;
-    }
-    item = "";
-    mouse_x = 0;
-    mouse_y = 0;
-    d3.select(id).style("opacity", 1.0);
-    restore_header_region();
-  };
-
-  function pos_tonum(pos_txt) {
-    return Number(pos_txt.replace(/px/g, ""));
-  }
-
-  function expand_header_region(idx) {
-    if (header_region.length > 0) return;
-    var handle_id = "#float" + idx + "_h.float_handle";
-    var fh = d3.select(handle_id);
-    header_region = [handle_id, fh.style("position"), fh.style("top"), fh.style("height"), fh.style("left"), fh.style("width")];
-    d3.select(handle_id)
-      .style("position", "fixed")
-      .style("top", "0px")
-      .style("height", document.body.clientHeight)
-      .style("left", "0px")
-      .style("width", document.body.clientWidth);
-  }
-
-  function restore_header_region() {
-    if (header_region.length == 0) return;
-    d3.select(header_region[0])
-      .style("position", header_region[1])
-      .style("top", header_region[2])
-      .style("height", header_region[3])
-      .style("left", header_region[4])
-      .style("width", header_region[5]);
-    header_region.length = 0;
-  }
 
   // -----------------------------------------------------------------------------
   // Overlay
@@ -691,7 +615,7 @@
 
     var float_id = "#float" + overlay_idx;
     var title_id = float_id + "_t";
-    bring_window_to_front(float_id);
+    fwin.bring_window_to_front(float_id);
     highlight_window_title(title_id, -1);
     setTimeout(function () {
       start_overlay(is_graph_event, true);
@@ -724,7 +648,7 @@
     // Window
     set_style(overlay_idx, circos_size, pos);
     highlight_window_title(title_id, delay);
-    bring_window_to_front(float_id);
+    fwin.bring_window_to_front(float_id);
   }
 
   function get_target_thumbs(is_graph_event) {
@@ -913,9 +837,9 @@
   // Window action
   //
 
-  ca_draw.bring_window_to_front = function (id) {
-    bring_window_to_front(id);
-  };
+  //ca_draw.bring_window_to_front = function (id) {
+  //  bring_window_to_front(id);
+  //};
 
   ca_draw.close_overlay = function () {
     delete_overlay();
@@ -929,10 +853,10 @@
     if (title !== undefined) return bundles[title];
   };
 
-  function bring_window_to_front(id) {
-    d3.select(id).style("z-index", z_value);
-    z_value += 1;
-  }
+  //function bring_window_to_front(id) {
+  //  d3.select(id).style("z-index", z_value);
+  //  z_value += 1;
+  //}
 
   function check_checkboxes() {
     // Check only the checkboxes corresponding to the highlighted thumbnails
