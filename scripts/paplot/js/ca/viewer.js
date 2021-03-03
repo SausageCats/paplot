@@ -117,21 +117,7 @@
   // Save data in viewer
   viewer.save = function (circosnr, source_or_target) {
     var data_id = `#view${circosnr}_data_${source_or_target === "source" ? "source" : "target"}`;
-    var filename = "data.txt";
-    var text = d3.select(data_id)[0][0].innerText;
-    var blob = new Blob([text], { type: "text/plain", endings: "native" });
-    if (window.navigator.msSaveBlob) {
-      // IE
-      window.navigator.msSaveBlob(blob, filename);
-      window.navigator.msSaveOrOpenBlob(blob, filename);
-    } else {
-      // Chrome, Edge, Firefox
-      var a = document.createElement("a");
-      a.href = window.URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-      window.URL.revokeObjectURL(a.href);
-    }
+    ca_utils.btn_save(data_id, "data.txt");
   };
 
   // -----------------------------------------------------------------------------

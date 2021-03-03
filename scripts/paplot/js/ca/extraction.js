@@ -97,7 +97,6 @@
       });
     }
 
-    console.log("extraction.js 113 見直し");
     var id = "#extr_output";
     d3.select(id)
       .append("ul")
@@ -118,6 +117,10 @@
 
   extr.open = function (circosnr) {
     open(circosnr);
+  };
+
+  extr.save = function () {
+    ca_utils.btn_save("#extr_output", "data.txt");
   };
 
   // -----------------------------------------------------------------------------
