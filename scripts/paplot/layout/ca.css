@@ -43,7 +43,7 @@ input[id^="btn_"]:active {
   margin: 0px 10px;
 }
 
-.float_close:hover {
+.float_close:hover, #extr_close:hover {
   background-color: #ff8787;
   border-color: #a64b4b;
 }
@@ -234,6 +234,7 @@ input[id^="view_cb"] {
   height: 30px;
   margin-left: 15px;
 }
+/* #extr_close:hover is defined above */
 #extr_handle {
   position: relative;
   width: 520px;
