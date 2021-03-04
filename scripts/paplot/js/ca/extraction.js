@@ -97,10 +97,10 @@
       });
     }
 
-    var id = "#extr_output";
-    d3.select(id)
-      .append("ul")
-      .selectAll(id + " ul li")
+    var out_id = "#extr_output";
+    d3.select(out_id)
+      .insert("ul", ":nth-child(1)")
+      .selectAll(out_id + " ul li")
       .data(data)
       .enter()
       .append("li")

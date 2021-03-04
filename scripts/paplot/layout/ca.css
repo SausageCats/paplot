@@ -236,10 +236,10 @@ input[id^="view_cb"] {
 }
 /* #extr_close:hover is defined above */
 #extr_handle {
-  position: relative;
-  width: 520px;
-  height: 30px;
-  top: -90px; /* title bar(30) + save/clear buttons(30) + extraction textarea(30) */
+  position: absolute;
+  width: 520px; /* same as extr_title */
+  height: 30px; /* same as extr_title */
+  top: 0px;
   left: 0px;
   cursor: move;
 }

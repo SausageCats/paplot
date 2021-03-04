@@ -94,6 +94,12 @@
         <td id="extr_title"><strong>Extraction of breakpoint positions</strong></td>
         <td><input type="button" value="X" id="extr_close" onclick="extr.close()" /></td>
       </tr></table>
+      <div id="extr_handle"
+        onmousedown="fwin.mouse_down(event, '#extr_frame', '#extr_handle')"
+        onmousemove="fwin.mouse_move(event, '#extr_frame')"
+        onmouseup="fwin.mouse_up(event, '#extr_frame')"
+        onmouseout="fwin.mouse_out('#extr_frame')"
+      ></div>
       <table><tr>
         <td><input type="button" value="Save" id="extr_save" onclick="extr.save()" /></td>
         <td><input type="button" value="Clear" id="extr_clear" onclick="extr.clear()" /></td>
@@ -111,12 +117,6 @@
       <table><tr>
         <td id="extr_output"><ul></ul></td>
       </tr></table>
-      <div id="extr_handle"
-        onmousedown="fwin.mouse_down(event, '#extr_frame', '#extr_handle')"
-        onmousemove="fwin.mouse_move(event, '#extr_frame')"
-        onmouseup="fwin.mouse_up(event, '#extr_frame')"
-        onmouseout="fwin.mouse_out('#extr_frame')"
-      ></div>
     </div>
 
     <!-- ### details ### -->

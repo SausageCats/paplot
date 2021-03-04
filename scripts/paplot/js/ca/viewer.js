@@ -420,6 +420,7 @@
         var item = items[foc_idx];
         var circosnr = item.circosnr;
         var src_has_d = item.unfoc_idx !== -1 ? true : false; // Source area has data(d)
+        var id;
 
         // Clone stroke
         function change_stroke_color(ilink, color, width) {
@@ -438,13 +439,13 @@
 
         // Auto scroll
         if (d3.select(`#view_autoscroll${circosnr}`)[0][0].checked) {
-          var id = item.is_src_area ? `view${circosnr}_data_target` : `view${circosnr}_data_source`;
+          id = item.is_src_area ? `view${circosnr}_data_target` : `view${circosnr}_data_source`;
           var scroll = Math.max(0, (item.hrow + 1) * 20 - 100); // 100 is height of area. see ../layout/ca.css
           document.getElementById(id).scrollTop = scroll;
         }
 
         // Change background color of view data
-        var id = item.is_src_area ? `#view${circosnr}_data_source` : `#view${circosnr}_data_target`;
+        id = item.is_src_area ? `#view${circosnr}_data_source` : `#view${circosnr}_data_target`;
         var width = d3.select(id)[0][0].scrollWidth;
         d3.selectAll(`.view_data${item.id_group}`).style("background-color", "#e1d5d5").style("width", width); // gray and red
         if (!src_has_d) {
@@ -455,7 +456,7 @@
           var color = "#f0a6a6"; // Light Red
           d3.select(`#view_data${item.id_one}`).style("background-color", color);
           var s_or_t = item.is_src_area ? "t" : "s";
-          var id = `${circosnr}${s_or_t}${item.unfoc_idx}`;
+          id = `${circosnr}${s_or_t}${item.unfoc_idx}`;
           d3.select(`#view_data${id}`).style("background-color", color);
         }
       })
