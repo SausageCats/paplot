@@ -28,7 +28,7 @@ input[id^="btn_"]:active {
 
 
 /**
- * Float window
+ * Floating window
  */
 
 .float_title {
@@ -46,6 +46,38 @@ input[id^="btn_"]:active {
 .float_close:hover, #extr_close:hover {
   background-color: #ff8787;
   border-color: #a64b4b;
+}
+
+div[id^="view_vline"], #extr_vline {
+  top: 0px;
+  position: absolute;
+  width: 5px;
+  margin: 0;
+  border: solid 1px #ebebeb;
+  padding: 0;
+  cursor: w-resize;
+  visibility: hidden;
+  background-color: #ebebeb;
+  opacity: 50%;
+}
+div[id^="view_vline"] {
+  left: 850px;
+  height: 490px; /* 270+220 */
+}
+#extr_vline {
+  position: absolute;
+  left: 596px; /* 600-2*2(border) */
+  height: 527px; /* 529-2(border) */
+}
+#fwin_modal_window {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2147483647;
+  cursor: w-resize;
 }
 
 
@@ -92,36 +124,6 @@ input[id^="btn_"]:active {
   position: absolute;
   background-color: white;
   visibility: hidden;
-  overflow: hidden;
-}
-
-div[id^="view_vline"] {
-  top: 0px;
-  left: 850px;
-  height: 490px; /* 270+220 */
-  position: absolute;
-  width: 5px;
-  margin: 0;
-  border: solid 1px #ebebeb;
-  padding: 0;
-  cursor: w-resize;
-  background-color: transparent;
-  visibility: hidden;
-  background-color: #ebebeb;
-  opacity: 50%;
-}
-.view_vline_cursor {
- cursor: default;
-}
-#view_modal_window {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2147483647;
-  cursor: w-resize;
 }
 
 .view_area_common {
@@ -155,8 +157,8 @@ input[id^="view_cb"] {
   padding 3px;
 }
 .view_data_common ul {
-  list-style:none;
-  margin-left 0;
+  list-style: none;
+  margin-left: 0;
   padding-inline-start: 0;
 }
 .view_data_common ul li {
@@ -209,36 +211,40 @@ input[id^="view_cb"] {
   position: absolute;
   visibility: hidden;
   border: solid 2px gray;
-  font 12px;
   border-radius: 0.3em;
-  width: 585px;  /* 580+5(fine tuning) */
-  height: 495px; /* 400+30(header)+30(save...)+30(chr...)+5(fine tuning) */
+  width: 600px;
+  min-width: 600px;
+  height: 529px; /* 400+50(header)+30(save...)+30(chr...)+19(fine turning) */
   background-color: white;
   border-color: rgb(211, 211, 211);
   margin: 0;
   padding: 0;
   opacity: 1.0;
 }
+#extr_frame table tr td {
+  display: inline-block;
+}
 
 /* 1 line */
 #extr_title {
   width: 520px;
-  height: 30px;
+  height: 50px;
   background-color: rgb(211, 211, 211);
-  font-size 10px;
   margin: 0;
-  padding: 5px 10px;
+  font-size: 16px;
+  padding: 14px;
 }
 #extr_close {
   width: 30px;
   height: 30px;
-  margin-left: 15px;
+  margin: 0px 0px 0px 23px; /* (600-2*2(border)-520(header)-30(close))/2 */
+  padding: 0;
 }
 /* #extr_close:hover is defined above */
 #extr_handle {
   position: absolute;
   width: 520px; /* same as extr_title */
-  height: 30px; /* same as extr_title */
+  height: 50px; /* same as extr_title */
   top: 0px;
   left: 0px;
   cursor: move;
@@ -255,18 +261,20 @@ input[id^="view_cb"] {
 }
 
 /* 3 line */
-/* 50*2+90*4+60+30=550 */
 .extr_chr {
   width: 50px;
   height: 30px;
-  margin 0;
-  padding 0;
 }
 .extr_breakpoint {
   width: 90px;
   height: 30px;
-  margin 0;
-  padding 0;
+}
+#extr_hyphen {
+  width: 40px;
+  height: 30px;
+  background-color: white;
+  border-width: 0px;
+  cursor: default;
 }
 #extr_extract {
   width: 70px;
@@ -274,26 +282,15 @@ input[id^="view_cb"] {
   margin 0;
   padding 0;
 }
-#extr_hyphen {
-  width: 40px;
-  height: 30px;
-  background-color: white;
-  border-width: 0px;
-  width: 2em;
-  cursor: default;
-}
 
 /* 4 lines or more */
-#extr_output {
-  margin: 0;
-  padding: 0;
-  position: absolute;
-  width: 580px;
+#extr_data {
+  border-top: solid 1px black;
   overflow: scroll;
-  height: 400px;
   white-space: nowrap;
+  height: 400px;
 }
-#extr_output ul {
+#extr_data ul {
   list-style:none;
   margin: 0;
   padding-left: 2px;

@@ -114,9 +114,9 @@
         <td><input type="textarea" id="extr_bpr2" class="extr_breakpoint" placeholder="Right2" /></td>
         <td><input type="button" value="Extract" id="extr_extract" onclick="extr.extract()" /></td>
       </tr></table>
-      <table><tr>
-        <td id="extr_output"><ul></ul></td>
-      </tr></table>
+      <div id="extr_data"></div>
+      <div id="extr_vline" onmousedown="extr.resize_vline(event)"></div>
+      <div id="extr_hline" onmousedown="extr.resize_hline(event)"></div>
     </div>
 
     <!-- ### details ### -->
@@ -133,7 +133,7 @@
     <div id="download"></div>
 
     <!-- modal window -->
-    <div id="view_modal_window"></div>
+    <div id="fwin_modal_window"></div>
 
     <script type="text/javascript" src="../lib/d3_v3.5.13/d3.min.js"></script>
     <script type="text/javascript" src="../lib/d3-legend_v1.10.0/d3-legend.min.js"></script>

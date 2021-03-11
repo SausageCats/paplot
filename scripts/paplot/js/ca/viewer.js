@@ -11,51 +11,11 @@
   // -----------------------------------------------------------------------------
 
   // Resize viewer window when selecting vertical line
-  viewer.vline_mousedown = function (e, id) {
+  viewer.resize_vline = function (e, id) {
+    var win_id = `#float${id}`;
     var view_id = `#view${id}`;
     var vline_id = `#view_vline${id}`;
-    var min_width = parseInt(d3.select(view_id).style("min-width").replace("px", ""));
-    var modal = document.getElementById("view_modal_window");
-
-    if (d3.select(vline_id).style("cursor") === "default" && window.onmousemove !== null) return;
-
-    fwin.bring_window_to_front(`#float${id}`);
-    modal.style.display = "block";
-
-    window.onmouseup = function (e) {
-      if (e.target === modal) {
-        modal.style.display = "none";
-        window.onmouseup = null;
-        window.onmouseout = null;
-        // Change cursor shape
-        var cursor = d3.select(vline_id).style("cursor");
-        d3.select(vline_id).style("cursor", "default");
-        // After returning the cursor to the default shape,
-        // the vertical line cannot be moved until the cursor leaves it
-        var vline = document.getElementById(vline_id.slice(1));
-        window.onmousemove = function (e) {
-          if (e.target !== vline) {
-            d3.select(vline_id).style("cursor", cursor);
-            window.onmousemove = null;
-          }
-        };
-      }
-    };
-
-    window.onmouseout = function (e) {
-      window.onmouseup(e);
-    };
-
-    window.onmousemove = function (e) {
-      // resize
-      var width = parseInt(d3.select(view_id).style("width").replace("px", ""));
-      var vleft = parseInt(document.getElementById(vline_id.slice(1)).getBoundingClientRect().left);
-      var diff = e.pageX - vleft;
-      var new_width = Math.max(min_width, width + diff);
-      var new_vleft = Math.max(0, new_width - min_width);
-      d3.select(view_id).style("width", new_width + "px");
-      d3.select(vline_id).style("margin-left", new_vleft + "px");
-    };
+    fwin.resize_vline(e, win_id, view_id, vline_id);
   };
 
   // -----------------------------------------------------------------------------

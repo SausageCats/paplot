@@ -154,7 +154,7 @@ detail_template = """
       <div id="view{id}_data_target" class="view_data_common"><ul></ul></div>
     </div>
   </div>
-  <div id="view_vline{id}" onmousedown="viewer.vline_mousedown(event, '{id}')"></div>
+  <div id="view_vline{id}" onmousedown="viewer.resize_vline(event, '{id}')"></div>
 </div>
 """
 detail_template = to_mintext(detail_template)

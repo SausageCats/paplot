@@ -97,10 +97,10 @@
       });
     }
 
-    var out_id = "#extr_output";
-    d3.select(out_id)
+    var data_id = "#extr_data";
+    d3.select(data_id)
       .insert("ul", ":nth-child(1)")
-      .selectAll(out_id + " ul li")
+      .selectAll(data_id + " ul li")
       .data(data)
       .enter()
       .append("li")
@@ -111,8 +111,21 @@
     if (circosnr !== undefined) open(circosnr);
   };
 
+  // Resize extraction window when selecting vertical line
+  extr.resize_vline = function (e) {
+    var win_id = "#extr_frame";
+    var view_id = "#extr_frame";
+    var vline_id = "#extr_vline";
+    fwin.resize_vline(e, win_id, view_id, vline_id);
+  };
+
   extr.clear = function () {
-    d3.selectAll(`#extr_output ul`).remove();
+    d3.selectAll("#extr_data ul").remove();
+  };
+
+  extr.close = function () {
+    d3.select("#extr_frame").style("visibility", "hidden");
+    d3.select("#extr_vline").style("visibility", "hidden");
   };
 
   extr.open = function (circosnr) {
@@ -120,7 +133,7 @@
   };
 
   extr.save = function () {
-    ca_utils.btn_save("#extr_output", "data.txt");
+    ca_utils.btn_save("#extr_data", "data.txt");
   };
 
   // -----------------------------------------------------------------------------
@@ -139,6 +152,9 @@
       .style("left", left + "px")
       .style("top", right + "px")
       .style("visibility", "visible");
+
+    var vline_id = "#extr_vline";
+    d3.select(vline_id).style("visibility", "visible");
 
     // Need setTimeout to move the Extraction window to the forefront when clicking the Extract button on the viewer
     setTimeout(function () {
